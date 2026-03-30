@@ -44,39 +44,26 @@ show_main_menu() {
     echo -e "${YELLOW}                    M A I N   M E N U                       ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
-    echo -e "${CYAN}  Select an option:${NC}"
+    echo -e "${CYAN}  [1] Quick Analysis     (Twitter → analyze → report)${NC}"
+    echo -e "${CYAN}  [2] Run Pipeline      (choose platforms)${NC}"
+    echo -e "${CYAN}  [3] View Results       (output folder)${NC}"
+    echo -e "${CYAN}  [4] Configuration     (API key, settings)${NC}"
+    echo -e "${CYAN}  [0] Exit${NC}"
     echo
-    echo -e "${CYAN}    [1] Quick Analysis     (Twitter only - fastest)${NC}"
-    echo -e "${CYAN}    [2] Run Pipeline      (choose platforms & analyze)${NC}"
-    echo -e "${CYAN}    [3] Scrape Data       (just fetch data)${NC}"
-    echo -e "${CYAN}    [4] Analyze Data      (run LLM analysis)${NC}"
-    echo -e "${CYAN}    [5] Generate Reports  (Markdown/JSON/Audio)${NC}"
-    echo -e "${CYAN}    [6] View Results     (check output files)${NC}"
-    echo -e "${CYAN}    [7] Configuration    (API keys, models)${NC}"
-    echo -e "${CYAN}    [0] Exit                                           ${NC}"
-    echo
-    echo -ne "${GREEN}  Enter choice [0-7]: ${NC}"
+    echo -ne "${GREEN}  Enter choice [0-4]: ${NC}"
     read -r choice
     
-    while [[ ! "$choice" =~ ^[0-7]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 0-7:${NC}"
-        echo -ne "${GREEN}  Enter choice [0-7]: ${NC}"
+    while [[ ! "$choice" =~ ^[0-4]$ ]]; do
+        echo -e "${RED}  Invalid. Enter 0-4:${NC}"
+        echo -ne "${GREEN}  Enter choice [0-4]: ${NC}"
         read -r choice
     done
     
     case $choice in
         1) quick_analysis ;;
         2) run_full_pipeline ;;
-        3) scrape_data ;;
-        4) analyze_data ;;
-        5) generate_reports ;;
-        6) view_output ;;
-        7) configuration ;;
-        3) analyze_data ;;
-        4) generate_reports ;;
-        5) view_output ;;
-        6) configuration ;;
-        7) show_help ;;
+        3) view_output ;;
+        4) configuration ;;
         0) echo -e "\n${GREEN}Goodbye!${NC}\n"; exit 0 ;;
         *) show_main_menu ;;
     esac
@@ -119,7 +106,7 @@ quick_analysis() {
     if [ -n "$twitter_file" ] && [ -f "$twitter_file" ]; then
         echo -e "${CYAN}  [2/3] Analyzing with LLM...${NC}"
         cp "$twitter_file" /tmp/analyze_input.json
-        predictive-ling analyze llm /tmp/analyze_input.json --prompt-type event_stream 2>&1 | tail -10
+        predictive-ling analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
         
         # Copy analysis to timestamped dir
         if [ -f ~/.predictive-ling/output/analysis.json ]; then
@@ -128,8 +115,24 @@ quick_analysis() {
         
         echo -e "${CYAN}  [3/3] Generating report...${NC}"
         
+        # Prepend search info to report
+        SEARCH_INFO="Search: $query | Limit: $limit | Timestamp: $TIMESTAMP"
+        
         if [ -f "$OUTPUT_DIR/analysis.json" ]; then
+            # Generate report with header info
             predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
+            
+            # Add header to report
+            {
+                echo "---"
+                echo "search: $query"
+                echo "limit: $limit"  
+                echo "timestamp: $TIMESTAMP"
+                echo "---"
+                echo ""
+                cat "$OUTPUT_DIR/report.md"
+            } > "$OUTPUT_DIR/report.md.tmp"
+            mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
         fi
     else
         echo -e "${RED}  No data scraped${NC}"
@@ -143,21 +146,116 @@ quick_analysis() {
     echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
     echo -e "${CYAN}  Latest: ~/.predictive-ling/output/latest${NC}"
     echo
+    
+    # Show the report
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${YELLOW}  R E P O R T                                      ${YELLOW}${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    echo -e "${CYAN}  Query: ${GREEN}$query${NC}"
+    echo -e "${CYAN}  Timestamp: ${GREEN}$TIMESTAMP${NC}"
+    echo
+    cat "$OUTPUT_DIR/report.md"
+    echo
     read -p "  Press Enter to continue..."
     show_main_menu
+}
+
+run_and_display() {
+    local query=$1
+    local limit=$2
+    local platforms=$3
+    
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    OUTPUT_DIR=~/.predictive-ling/output/$TIMESTAMP
+    mkdir -p "$OUTPUT_DIR"
+    
+    echo
+    echo -e "${CYAN}  [1/3] Scraping $platforms...${NC}"
+    
+    case $platforms in
+        "Twitter")
+            predictive-ling scrape twitter --query "$query" --limit "$limit"
+            data_file=$(ls -t ~/.predictive-ling/output/twitter_*.json 2>/dev/null | head -1)
+            ;;
+        "Twitter + Reddit")
+            predictive-ling scrape twitter --query "$query" --limit "$limit"
+            predictive-ling scrape reddit --subreddit all --query "$query" --limit "$limit"
+            twitter_file=$(ls -t ~/.predictive-ling/output/twitter_*.json 2>/dev/null | head -1)
+            reddit_file=$(ls -t ~/.predictive-ling/output/reddit_*.json 2>/dev/null | head -1)
+            if [ -n "$twitter_file" ]; then
+                cp "$twitter_file" "$OUTPUT_DIR/data.json"
+                [ -n "$reddit_file" ] && python3 -c "
+import json
+with open('$OUTPUT_DIR/data.json') as f: td = json.load(f)
+with open('$reddit_file') as f: rd = json.load(f)
+with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'twitter': td, 'reddit': rd}, f)
+" 2>/dev/null
+            fi
+            data_file="$OUTPUT_DIR/data.json"
+            ;;
+        "All Platforms")
+            predictive-ling run-all --query "$query" --limit "$limit" 2>&1 | tail -10
+            data_file=$(ls -t ~/.predictive-ling/output/combined_*.json ~/.predictive-ling/output/twitter_*.json 2>/dev/null | head -1)
+            ;;
+    esac
+    
+    if [ -z "$data_file" ] || [ ! -f "$data_file" ]; then
+        echo -e "${RED}  ✗ No data scraped${NC}"
+        return 1
+    fi
+    
+    echo -e "${CYAN}  [2/3] Analyzing with LLM (WebBot 2.0)...${NC}"
+    predictive-ling analyze llm "$data_file" --prompt-type webbot 2>&1 | tail -10
+    
+    if [ ! -f ~/.predictive-ling/output/analysis.json ]; then
+        echo -e "${RED}  ✗ Analysis failed${NC}"
+        return 1
+    fi
+    
+    cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
+    
+    echo -e "${CYAN}  [3/3] Generating report...${NC}"
+    predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
+    
+    # Add header
+    {
+        echo "---"
+        echo "search: $query"
+        echo "limit: $limit"
+        echo "timestamp: $TIMESTAMP"
+        echo "platforms: $platforms"
+        echo "---"
+        echo ""
+        cat "$OUTPUT_DIR/report.md"
+    } > "$OUTPUT_DIR/report.md.tmp"
+    mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
+    
+    ln -sf "$OUTPUT_DIR" ~/.predictive-ling/output/latest
+    
+    echo
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${YELLOW}  R E P O R T                                      ${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}  Query: ${GREEN}$query${NC}"
+    echo -e "${CYAN}  Platforms: ${GREEN}$platforms${NC}"
+    echo -e "${CYAN}  Timestamp: ${GREEN}$TIMESTAMP${NC}"
+    echo
+    cat "$OUTPUT_DIR/report.md"
+    echo
+    read -p "  Press Enter to continue..."
 }
 
 run_full_pipeline() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              F U L L   P I P E L I N E                      ${NC}"
+    echo -e "${YELLOW}              R U N   P I P E L I N E                       ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
-    
-    echo -e "${CYAN}  Pipeline mode:${NC}"
-    echo "    [1] Twitter only     (fastest - recommended)"
-    echo "    [2] Twitter + Reddit (Community discussions)"
-    echo "    [3] All platforms   (full coverage)"
+    echo -e "${CYAN}  Select:${NC}"
+    echo "    [1] Twitter only     (fastest)"
+    echo "    [2] Twitter + Reddit"
+    echo "    [3] All platforms   (full)"
     echo -ne "${GREEN}  > Mode [1-3]: ${NC}"
     read -r mode
     
@@ -168,49 +266,20 @@ run_full_pipeline() {
     done
     
     echo
-    echo -e "${CYAN}  Search query${NC}"
-    echo -e "${CYAN}    (e.g., future leaks, AI consciousness, bitcoin)${NC}"
-    echo -ne "${GREEN}  > Query: ${NC}"
+    echo -ne "${GREEN}  > Search query [future leaks]: ${NC}"
     read -r query
     query=${query:-"future leaks"}
     
-    echo
-    echo -ne "${GREEN}  > Limit: ${NC}"
+    echo -ne "${GREEN}  > Limit [25]: ${NC}"
     read -r limit
     limit=${limit:-25}
     
-    echo
-    echo -e "${YELLOW}  Running pipeline...${NC}"
-    echo "    Query: $query"
-    echo "    Limit: $limit"
-    echo
-    
     case $mode in
-        1)
-            echo -e "${GREEN}  [Twitter only]${NC}"
-            predictive-ling scrape twitter --query "$query" --limit "$limit"
-            twitter_file=$(ls -t ~/.predictive-ling/output/twitter_*.json 2>/dev/null | head -1)
-            if [ -n "$twitter_file" ]; then
-                predictive-ling analyze llm "$twitter_file" --prompt-type event_stream 2>&1 | tail -20
-                predictive-ling report markdown ~/.predictive-ling/output/analysis.json 2>&1 | tail -10
-            fi
-            ;;
-        2)
-            echo -e "${GREEN}  [Twitter + Reddit]${NC}"
-            predictive-ling scrape twitter --query "$query" --limit "$limit"
-            predictive-ling scrape reddit --subreddit all --query "$query" --limit "$limit"
-            ;;
-        3)
-            echo -e "${GREEN}  [Full pipeline]${NC}"
-            predictive-ling run-all --query "$query" --limit "$limit" 2>&1 | tail -30
-            ;;
+        1) run_and_display "$query" "$limit" "Twitter" ;;
+        2) run_and_display "$query" "$limit" "Twitter + Reddit" ;;
+        3) run_and_display "$query" "$limit" "All Platforms" ;;
     esac
     
-    echo
-    echo -e "${GREEN}  ✓ Pipeline complete!${NC}"
-    echo -e "${CYAN}  Results: ~/.predictive-ling/output/${NC}"
-    echo
-    read -p "  Press Enter to continue..."
     show_main_menu
 }
 
@@ -315,23 +384,25 @@ analyze_data() {
     
     echo
     echo -e "${CYAN}  Select prompt type:${NC}"
-    echo "    [1] event_stream (General patterns)"
-    echo "    [2] globe_pop    (Global populations)"
-    echo "    [3] us_pop       (US-specific)"
-    echo -ne "${GREEN}  > Prompt [1-3]: ${NC}"
+    echo "    [1] webbot       (WebBot 2.0 - Recommended)"
+    echo "    [2] event_stream (General patterns)"
+    echo "    [3] globe_pop    (Global populations)"
+    echo "    [4] us_pop       (US-specific)"
+    echo -ne "${GREEN}  > Prompt [1-4]: ${NC}"
     read -r prompt_choice
     
-    while [[ ! "$prompt_choice" =~ ^[1-3]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 1-3:${NC}"
-        echo -ne "${GREEN}  > Prompt [1-3]: ${NC}"
+    while [[ ! "$prompt_choice" =~ ^[1-4]$ ]]; do
+        echo -e "${RED}  Invalid. Enter 1-4:${NC}"
+        echo -ne "${GREEN}  > Prompt [1-4]: ${NC}"
         read -r prompt_choice
     done
     
     case $prompt_choice in
-        1) prompt_type="event_stream" ;;
-        2) prompt_type="globe_pop" ;;
-        3) prompt_type="us_pop" ;;
-        *) prompt_type="event_stream" ;;
+        1) prompt_type="webbot" ;;
+        2) prompt_type="event_stream" ;;
+        3) prompt_type="globe_pop" ;;
+        4) prompt_type="us_pop" ;;
+        *) prompt_type="webbot" ;;
     esac
     
     echo
