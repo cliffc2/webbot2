@@ -653,49 +653,20 @@ view_output() {
         
         SELECTED_DIR=$(echo "$run_folders" | sed -n "${sel}p")
         
-        echo
-        echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-        echo -e "${CYAN}  │${NC}  Actions for: $(basename "$SELECTED_DIR")${CYAN}│${NC}"
-        echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
-        echo -e "${CYAN}  │${NC}    [1] View report.md                                      ${CYAN}│${NC}"
-        echo -e "${CYAN}  │${NC}    [2] View analysis.json                                  ${CYAN}│${NC}"
-        echo -e "${CYAN}  │${NC}    [3] Open in Finder                                     ${CYAN}│${NC}"
-        echo -e "${CYAN}  │${NC}    [0] Back                                               ${CYAN}│${NC}"
-        echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
-        echo
-        echo -ne "${GREEN}  ➜ Select [0-3]: ${NC}"
-        read -r choice
-        
-        while [[ ! "$choice" =~ ^[0-3]$ ]]; do
-            echo -e "${RED}  ✗ Invalid. Enter 0-3:${NC}"
-            echo -ne "${GREEN}  ➜ Select [0-3]: ${NC}"
-            read -r choice
-        done
-        
-        case $choice in
-            1)
-                if [ -f "$SELECTED_DIR/report.md" ]; then
-                    echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
-                    cat "$SELECTED_DIR/report.md"
-                else
-                    echo -e "${YELLOW}  No report.md - run analysis first${NC}"
-                fi
-                ;;
-            2)
-                if [ -f "$SELECTED_DIR/analysis.json" ]; then
-                    echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
-                    cat "$SELECTED_DIR/analysis.json" | python3 -m json.tool | head -100
-                else
-                    echo -e "${YELLOW}  No analysis.json - run analysis first${NC}"
-                fi
-                ;;
-            3)
-                open "$SELECTED_DIR"
-                ;;
-            0)
-                view_output
-                ;;
-        esac
+        if [ -f "$SELECTED_DIR/report.md" ]; then
+            echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+            echo -e "${YELLOW}  REPORT: $(basename "$SELECTED_DIR")${NC}"
+            echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
+            cat "$SELECTED_DIR/report.md"
+        elif [ -f "$SELECTED_DIR/analysis.json" ]; then
+            echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+            echo -e "${YELLOW}  ANALYSIS: $(basename "$SELECTED_DIR")${NC}"
+            echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
+            cat "$SELECTED_DIR/analysis.json" | python3 -m json.tool | head -100
+        else
+            echo -e "${YELLOW}  Empty folder - run Quick Analysis first${NC}"
+            open "$SELECTED_DIR"
+        fi
     fi
     
     echo
