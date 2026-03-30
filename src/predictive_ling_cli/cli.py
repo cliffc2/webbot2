@@ -140,8 +140,8 @@ def analyze():
 @click.option(
     "--prompt-type",
     "-p",
-    default="event_stream",
-    type=click.Choice(["event_stream", "globe_pop", "us_pop"]),
+    default="webbot",
+    type=click.Choice(["webbot", "event_stream", "globe_pop", "us_pop"]),
 )
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 def analyze_llm(input_file: str, model: str, prompt_type: str, output: Optional[str]):
