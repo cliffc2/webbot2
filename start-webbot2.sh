@@ -612,74 +612,60 @@ view_output() {
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
+    # Get latest run folder
+    LATEST_DIR=~/.predictive-ling/output/latest
+    
     echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  Output Directory: ~/.predictive-ling/output/            ${CYAN}│${NC}"
+    echo -e "${CYAN}  │${NC}  Latest run: $(readlink -f "$LATEST_DIR" 2>/dev/null | xargs basename 2>/dev/null || echo "none")${CYAN}│${NC}"
     echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
     
-    output_files=$(ls -t ~/.predictive-ling/output/ 2>/dev/null)
-    total_files=$(echo "$output_files" | wc -l | tr -d ' ')
-    
-    if [ "$total_files" -gt 0 ] 2>/dev/null; then
-        i=1
-        for f in $output_files; do
-            echo -e "${CYAN}  │${NC}    [$i] $(basename "$f")${CYAN}│${NC}"
-            i=$((i+1))
+    if [ -d "$LATEST_DIR" ]; then
+        ls -la "$LATEST_DIR" 2>/dev/null | tail -n +4 | awk '{print "  │    " $9}' | while read line; do
+            [ -n "$line" ] && echo -e "${CYAN}  │${NC}    $line${CYAN}│${NC}"
         done
     else
-        echo -e "${CYAN}  │${NC}    No files found                                          ${CYAN}│${NC}"
-        total_files=0
+        echo -e "${CYAN}  │${NC}    No runs found                                           ${CYAN}│${NC}"
     fi
     echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
     echo
     
     echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  Quick Actions:                                           ${CYAN}│${NC}"
+    echo -e "${CYAN}  │${NC}  Actions:                                                  ${CYAN}│${NC}"
     echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [1] ▶ View report.md                                   ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [2] ▶ View report.json                                  ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [3] ▶ View latest analysis.json                         ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [4] ▶ Open in Finder                                     ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [5] ▶ Open report.md in terminal                        ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [0] ▶ Back to main menu                                 ${CYAN}│${NC}"
+    echo -e "${CYAN}  │${NC}    [1] View report.md                                      ${CYAN}│${NC}"
+    echo -e "${CYAN}  │${NC}    [2] View analysis.json                                  ${CYAN}│${NC}"
+    echo -e "${CYAN}  │${NC}    [3] Open folder in Finder                                ${CYAN}│${NC}"
+    echo -e "${CYAN}  │${NC}    [0] Back to main menu                                   ${CYAN}│${NC}"
     echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
     echo
-    echo -ne "${GREEN}  ➜ Select option [0-5]: ${NC}"
+    echo -ne "${GREEN}  ➜ Select [0-3]: ${NC}"
     read -r choice
     
-    while [[ ! "$choice" =~ ^[0-5]$ ]]; do
-        echo -e "${RED}  ✗ Invalid. Enter 0-5:${NC}"
-        echo -ne "${GREEN}  ➜ Select option [0-5]: ${NC}"
+    while [[ ! "$choice" =~ ^[0-3]$ ]]; do
+        echo -e "${RED}  ✗ Invalid. Enter 0-3:${NC}"
+        echo -ne "${GREEN}  ➜ Select [0-3]: ${NC}"
         read -r choice
     done
     
     case $choice in
         1)
-            echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-            echo -e "${YELLOW}  ║                    R E P O R T . M D                    ║${NC}"
-            echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
-            cat ~/.predictive-ling/output/report.md 2>/dev/null || echo "File not found"
+            if [ -f "$LATEST_DIR/report.md" ]; then
+                echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
+                cat "$LATEST_DIR/report.md"
+            else
+                echo "report.md not found"
+            fi
             ;;
         2)
-            echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-            echo -e "${YELLOW}  ║                   R E P O R T . J S O N                 ║${NC}"
-            echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
-            cat ~/.predictive-ling/output/report.json 2>/dev/null | python3 -m json.tool 2>/dev/null || echo "File not found"
+            if [ -f "$LATEST_DIR/analysis.json" ]; then
+                echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
+                cat "$LATEST_DIR/analysis.json" | python3 -m json.tool | head -100
+            else
+                echo "analysis.json not found"
+            fi
             ;;
         3)
-            echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-            echo -e "${YELLOW}  ║                 A N A L Y S I S . J S O N              ║${NC}"
-            echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
-            cat ~/.predictive-ling/output/analysis.json 2>/dev/null | python3 -m json.tool 2>/dev/null | head -80 || echo "File not found"
-            ;;
-        4)
-            open ~/.predictive-ling/output/
-            echo -e "${GREEN}  ✓ Opened Finder at ~/.predictive-ling/output/${NC}"
-            ;;
-        5)
-            echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-            echo -e "${YELLOW}  ║                   R E P O R T . M D                    ║${NC}"
-            echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
-            tail -30 ~/.predictive-ling/output/report.md 2>/dev/null || echo "File not found"
+            open "$LATEST_DIR"
             ;;
         0)
             show_main_menu
