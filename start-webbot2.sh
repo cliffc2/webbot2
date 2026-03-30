@@ -85,9 +85,10 @@ quick_analysis() {
     read -r limit
     limit=${limit:-25}
     
-    # Create timestamped output directory
+    # Sanitize query for folder name
+    query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -dc 'a-z0-9_' | cut -c1-15)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.predictive-ling/output/$TIMESTAMP
+    OUTPUT_DIR=~/.predictive-ling/output/${TIMESTAMP}_${query_slug}
     mkdir -p "$OUTPUT_DIR"
     
     echo
@@ -161,13 +162,42 @@ quick_analysis() {
     show_main_menu
 }
 
+get_top_finding() {
+    local analysis_file=$1
+    if [ ! -f "$analysis_file" ]; then
+        echo ""
+        return
+    fi
+    
+    # Try to get top archetype, metaphor, or future_leak
+    top=$(python3 -c "
+import json, sys
+try:
+    with open('$analysis_file') as f:
+        data = json.load(f)
+    
+    # Priority: archetype > metaphor > future_leak
+    if data.get('archetypes'):
+        print(data['archetypes'][0].get('name', '').replace('The ', '').lower().replace(' ', '_'))
+    elif data.get('metaphors'):
+        print(data['metaphors'][0].get('term', '').lower().replace(' ', '_')[:20])
+    elif data.get('future_leaks'):
+        print(data['future_leaks'][0].get('indicator', '').lower().replace(' ', '_')[:20])
+except:
+    pass
+" 2>/dev/null)
+    
+    echo "$top"
+}
+
 run_and_display() {
     local query=$1
     local limit=$2
     local platforms=$3
     
+    query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -dc 'a-z0-9_' | cut -c1-15)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.predictive-ling/output/$TIMESTAMP
+    OUTPUT_DIR=~/.predictive-ling/output/${TIMESTAMP}_${query_slug}
     mkdir -p "$OUTPUT_DIR"
     
     echo
