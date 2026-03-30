@@ -1,5 +1,7 @@
 # Predictive Linguistics CLI
 
+![webbot2 preview](webbot2.png)
+
 A Python CLI tool for multi-agent predictive linguistics workflow: cross-platform meme/archetype detection and synthesis, inspired by Clif High's research and spirittechie's work on https://github.com/spirittechie/predictive-linguistics-webbot
 
 **No API keys required!** Uses free alternative frontends for scraping and free LLM tiers for analysis.
