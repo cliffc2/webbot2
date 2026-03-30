@@ -653,7 +653,7 @@ view_output() {
                 echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
                 cat "$LATEST_DIR/report.md"
             else
-                echo "report.md not found"
+                echo -e "${YELLOW}  No report.md - run Quick Analysis first${NC}"
             fi
             ;;
         2)
@@ -661,7 +661,7 @@ view_output() {
                 echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
                 cat "$LATEST_DIR/analysis.json" | python3 -m json.tool | head -100
             else
-                echo "analysis.json not found"
+                echo -e "${YELLOW}  No analysis.json - run Quick Analysis first${NC}"
             fi
             ;;
         3)
