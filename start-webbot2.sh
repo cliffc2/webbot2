@@ -98,34 +98,50 @@ quick_analysis() {
     read -r limit
     limit=${limit:-25}
     
+    # Create timestamped output directory
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    OUTPUT_DIR=~/.predictive-ling/output/$TIMESTAMP
+    mkdir -p "$OUTPUT_DIR"
+    
     echo
     echo -e "${GREEN}  Running... Twitter scrape + analyze + report${NC}"
+    echo -e "${CYAN}  Output: $OUTPUT_DIR${NC}"
     echo
     
-    # Scrape Twitter
+    # Scrape Twitter - save to timestamped dir
     echo -e "${CYAN}  [1/3] Scraping Twitter...${NC}"
     predictive-ling scrape twitter --query "$query" --limit "$limit" 2>&1 | tail -3
     
-    # Get latest file
+    # Get latest file and copy to timestamped dir
     twitter_file=$(ls -t ~/.predictive-ling/output/twitter_*.json 2>/dev/null | head -1)
+    cp "$twitter_file" "$OUTPUT_DIR/data.json" 2>/dev/null
     
     if [ -n "$twitter_file" ] && [ -f "$twitter_file" ]; then
         echo -e "${CYAN}  [2/3] Analyzing with LLM...${NC}"
-        predictive-ling analyze llm "$twitter_file" --prompt-type event_stream 2>&1 | tail -10
+        cp "$twitter_file" /tmp/analyze_input.json
+        predictive-ling analyze llm /tmp/analyze_input.json --prompt-type event_stream 2>&1 | tail -10
+        
+        # Copy analysis to timestamped dir
+        if [ -f ~/.predictive-ling/output/analysis.json ]; then
+            cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
+        fi
         
         echo -e "${CYAN}  [3/3] Generating report...${NC}"
-        analysis_file=~/.predictive-ling/output/analysis.json
         
-        if [ -f "$analysis_file" ]; then
-            predictive-ling report markdown "$analysis_file" 2>&1 | tail -5
+        if [ -f "$OUTPUT_DIR/analysis.json" ]; then
+            predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
         fi
     else
         echo -e "${RED}  No data scraped${NC}"
     fi
     
+    # Update latest symlink
+    ln -sf "$OUTPUT_DIR" ~/.predictive-ling/output/latest
+    
     echo
     echo -e "${GREEN}  ✓ Quick analysis complete!${NC}"
-    echo -e "${CYAN}  Report: ~/.predictive-ling/output/report.md${NC}"
+    echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
+    echo -e "${CYAN}  Latest: ~/.predictive-ling/output/latest${NC}"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
