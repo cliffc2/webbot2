@@ -612,65 +612,91 @@ view_output() {
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
-    # Get latest run folder
-    LATEST_DIR=~/.predictive-ling/output/latest
+    # List all run folders
+    echo -e "${CYAN}  Select a run:${NC}"
+    echo
     
-    echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  Latest run: $(readlink -f "$LATEST_DIR" 2>/dev/null | xargs basename 2>/dev/null || echo "none")${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
+    # Get folders (not files), sorted by newest
+    run_folders=$(ls -td ~/.predictive-ling/output/*/ 2>/dev/null)
+    total=$(echo "$run_folders" | wc -l | tr -d ' ')
     
-    if [ -d "$LATEST_DIR" ]; then
-        ls -la "$LATEST_DIR" 2>/dev/null | tail -n +4 | awk '{print "  │    " $9}' | while read line; do
-            [ -n "$line" ] && echo -e "${CYAN}  │${NC}    $line${CYAN}│${NC}"
+    if [ "$total" -gt 0 ] && [ -n "$run_folders" ]; then
+        i=1
+        for folder in $run_folders; do
+            name=$(basename "$folder")
+            has_report="[report]"    # Check if folder has report.md
+            if [ -f "$folder/report.md" ]; then
+                has_report="[report]"
+            elif [ ! -f "$folder/report.md" ] && [ -f "$folder/data.json" ]; then
+                has_report="[data only]"
+            else
+                has_report="[empty]"
+            fi
+            echo -e "${CYAN}    [$i] $name $has_report${NC}"
+            i=$((i+1))
         done
     else
-        echo -e "${CYAN}  │${NC}    No runs found                                           ${CYAN}│${NC}"
+        echo -e "${CYAN}    No runs found${NC}"
+        total=0
     fi
-    echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
     echo
     
-    echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  Actions:                                                  ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [1] View report.md                                      ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [2] View analysis.json                                  ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [3] Open folder in Finder                                ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [0] Back to main menu                                   ${CYAN}│${NC}"
-    echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
-    echo
-    echo -ne "${GREEN}  ➜ Select [0-3]: ${NC}"
-    read -r choice
-    
-    while [[ ! "$choice" =~ ^[0-3]$ ]]; do
-        echo -e "${RED}  ✗ Invalid. Enter 0-3:${NC}"
+    if [ "$total" -gt 0 ]; then
+        echo -ne "${GREEN}  ➜ Select run [1-$total]: ${NC}"
+        read -r sel
+        
+        while [[ ! "$sel" =~ ^[0-9]+$ ]] || [ "$sel" -lt 1 ] || [ "$sel" -gt "$total" ]; do
+            echo -e "${RED}  Invalid. Enter 1-$total:${NC}"
+            echo -ne "${GREEN}  ➜ Select run [1-$total]: ${NC}"
+            read -r sel
+        done
+        
+        SELECTED_DIR=$(echo "$run_folders" | sed -n "${sel}p")
+        
+        echo
+        echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
+        echo -e "${CYAN}  │${NC}  Actions for: $(basename "$SELECTED_DIR")${CYAN}│${NC}"
+        echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
+        echo -e "${CYAN}  │${NC}    [1] View report.md                                      ${CYAN}│${NC}"
+        echo -e "${CYAN}  │${NC}    [2] View analysis.json                                  ${CYAN}│${NC}"
+        echo -e "${CYAN}  │${NC}    [3] Open in Finder                                     ${CYAN}│${NC}"
+        echo -e "${CYAN}  │${NC}    [0] Back                                               ${CYAN}│${NC}"
+        echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
+        echo
         echo -ne "${GREEN}  ➜ Select [0-3]: ${NC}"
         read -r choice
-    done
-    
-    case $choice in
-        1)
-            if [ -f "$LATEST_DIR/report.md" ]; then
-                echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
-                cat "$LATEST_DIR/report.md"
-            else
-                echo -e "${YELLOW}  No report.md - run Quick Analysis first${NC}"
-            fi
-            ;;
-        2)
-            if [ -f "$LATEST_DIR/analysis.json" ]; then
-                echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
-                cat "$LATEST_DIR/analysis.json" | python3 -m json.tool | head -100
-            else
-                echo -e "${YELLOW}  No analysis.json - run Quick Analysis first${NC}"
-            fi
-            ;;
-        3)
-            open "$LATEST_DIR"
-            ;;
-        0)
-            show_main_menu
-            ;;
-    esac
+        
+        while [[ ! "$choice" =~ ^[0-3]$ ]]; do
+            echo -e "${RED}  ✗ Invalid. Enter 0-3:${NC}"
+            echo -ne "${GREEN}  ➜ Select [0-3]: ${NC}"
+            read -r choice
+        done
+        
+        case $choice in
+            1)
+                if [ -f "$SELECTED_DIR/report.md" ]; then
+                    echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
+                    cat "$SELECTED_DIR/report.md"
+                else
+                    echo -e "${YELLOW}  No report.md - run analysis first${NC}"
+                fi
+                ;;
+            2)
+                if [ -f "$SELECTED_DIR/analysis.json" ]; then
+                    echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
+                    cat "$SELECTED_DIR/analysis.json" | python3 -m json.tool | head -100
+                else
+                    echo -e "${YELLOW}  No analysis.json - run analysis first${NC}"
+                fi
+                ;;
+            3)
+                open "$SELECTED_DIR"
+                ;;
+            0)
+                view_output
+                ;;
+        esac
+    fi
     
     echo
     read -p "  Press Enter to continue..."
