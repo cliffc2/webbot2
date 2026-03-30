@@ -34,7 +34,7 @@ EOF
     echo -e "${NC}"
     echo
     echo -e "${GREEN}       Predictive Linguistics CLI${NC}"
-    echo -e "${YELLOW}   Thanks clif_high & artbell${NC}"
+    echo -e "${YELLOW}   Thanks @clif_high & spirittechie${NC}"
     echo
 }
 
