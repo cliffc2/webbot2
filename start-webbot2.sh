@@ -17,24 +17,24 @@ show_banner() {
     
     echo -e "${CYAN}"
     cat << 'EOF'
- ..          ..                       s                   
-  kas                         .  YS"       .  MS"                      :8      .--~*jcc.    
- 88x.   .a.   .s.             `t888       `t888              k.      .88     lC     988Lc  
-'8888X.x888:.x888       .p     8888   .    8888   .    ...ue888b    :888ooo d888b   `8888> 
- `8888  888X '888k    88888.   9888..artB  988B..eLL8  888R Y888S -*c888888 ?8888>  98888F 
+.          ..                       s                   
+  kas                         .  x9"       .  ms"                      :8      .--~*jcc.    
+ 88x.   .q.   .q.             `t888       `t888              k.      .88     lw     988Lc  
+'8888X x888: x888       .p     8888   .    8888   .    ...ue888b    :888ooo d888b   `8888> 
+ `8888  888X '888k    88888.   9888..clif  high..1000  888R Y888S -artbell1 ?8888>  98888F 
   X888  888X  888X :888'8888.  9888  888C  9888  888H  888R O888>   8888     "**"  x88888~ 
   X888  888X  888X d888 '88%"  9888  888L  9888  888I  888R N888>   8888          d8888*`  
   X888  888X  888X 8888.+"     9888  888I  9888  888G  888R I888>   8888        emc"`   : 
- .X888  888X. 888~ 8888L       9888  888F  9888  888H u8888cJ888   .8888Lu=   :?.....  cgf 
+ .X888  888X. 888~ 8888L       9888  888F  9888  888H  8888c1888   .8888Lu=   :?.....  cgf 
  `%88%``"*888J"    '8888c. .+ .8888  888" .8888  888"  "*888*B"    ^T888*    C""8888888888 
    `~     `"        "88888%    `%888*%"    `%888*%"      'Y"         'Y"     8:  "cliffc2  
-                      "YS'        "`          "`                             ""    "**"` 
+                      "//'        "`          "`                             ""    "**"` 
 EOF
 
     echo -e "${NC}"
     echo
     echo -e "${GREEN}       Predictive Linguistics CLI${NC}"
-    echo -e "${YELLOW}   Thanks @clif_high & @spirittechie${NC}"
+    echo -e "${YELLOW}   Thanks clif_high & artbell${NC}"
     echo
 }
 
