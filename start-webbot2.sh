@@ -663,9 +663,10 @@ view_output() {
             echo -e "${YELLOW}  ANALYSIS: $(basename "$SELECTED_DIR")${NC}"
             echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
             cat "$SELECTED_DIR/analysis.json" | python3 -m json.tool | head -100
+        elif [ -f "$SELECTED_DIR/data.json" ]; then
+            echo -e "${YELLOW}  Data only - no report. Run Quick Analysis to generate report.${NC}"
         else
-            echo -e "${YELLOW}  Empty folder - run Quick Analysis first${NC}"
-            open "$SELECTED_DIR"
+            echo -e "${YELLOW}  Empty folder${NC}"
         fi
     fi
     
