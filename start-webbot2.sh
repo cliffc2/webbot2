@@ -642,14 +642,45 @@ view_output() {
     echo
     
     if [ "$total" -gt 0 ]; then
-        echo -ne "${GREEN}  ➜ Select run [1-$total]: ${NC}"
+        i=1
+        for folder in $run_folders; do
+            name=$(basename "$folder")
+            has_report="[report]"    # Check if folder has report.md
+            if [ -f "$folder/report.md" ]; then
+                has_report="[report]"
+            elif [ ! -f "$folder/report.md" ] && [ -f "$folder/data.json" ]; then
+                has_report="[data only]"
+            else
+                has_report="[empty]"
+            fi
+            echo -e "${CYAN}    [$i] $name $has_report${NC}"
+            i=$((i+1))
+        done
+        echo -e "${CYAN}    [0] Back to main menu${NC}"
+    else
+        echo -e "${CYAN}    No runs found${NC}"
+        echo
+        echo -ne "${GREEN}  ➜ Press Enter to go back: ${NC}"
+        read -r
+        show_main_menu
+        return
+    fi
+    echo
+    
+    if [ "$total" -gt 0 ]; then
+        echo -ne "${GREEN}  ➜ Select run [0-$total]: ${NC}"
         read -r sel
         
-        while [[ ! "$sel" =~ ^[0-9]+$ ]] || [ "$sel" -lt 1 ] || [ "$sel" -gt "$total" ]; do
-            echo -e "${RED}  Invalid. Enter 1-$total:${NC}"
-            echo -ne "${GREEN}  ➜ Select run [1-$total]: ${NC}"
+        while [[ ! "$sel" =~ ^[0-9]+$ ]] || [ "$sel" -lt 0 ] || [ "$sel" -gt "$total" ]; do
+            echo -e "${RED}  Invalid. Enter 0-$total:${NC}"
+            echo -ne "${GREEN}  ➜ Select run [0-$total]: ${NC}"
             read -r sel
         done
+        
+        if [ "$sel" = "0" ]; then
+            show_main_menu
+            return
+        fi
         
         SELECTED_DIR=$(echo "$run_folders" | sed -n "${sel}p")
         
@@ -672,7 +703,7 @@ view_output() {
     
     echo
     read -p "  Press Enter to continue..."
-    view_output
+    show_main_menu
 }
 
 configuration() {
