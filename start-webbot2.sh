@@ -39,17 +39,17 @@ show_main_menu() {
     echo "  MAIN MENU"
     echo "  ========="
     echo
-    echo "  [1] Web Scraper        (Scrapy - any URL)"
-    echo "  [2] Analyze Local File (PDF/MD → report)"
-    echo "  [3] Quick Analysis     (Currents API → analyze → report)"
-    echo "  [4] NewsAPI Analysis  (NewsAPI → analyze → report)"
-    echo "  [5] Run Pipeline       (choose platforms)"
-    echo "  [6] View Results       (output folder)"
-    echo "  [7] Configuration     (API key, settings)"
-    echo "  [8] Timeline Tracker   (batch analyze → timeline view)"
+    echo "  [1] Web Scraper          (Scrapy - fetch any URL)"
+    echo "  [2] Analyze Local File   (PDF or Markdown → report)"
+    echo "  [3] Quick Analysis       (Currents API → analyze → report)"
+    echo "  [4] NewsAPI Analysis    (NewsAPI → analyze → report)"
+    echo "  [5] Run Pipeline         (choose platforms)"
+    echo "  [6] View Results        (browse output folder)"
+    echo "  [7] Configuration       (API keys, settings)"
+    echo "  [8] Timeline Tracker    (batch analyze → timeline view)"
     echo "  [0] Exit"
     echo
-    echo -ne "  Enter choice [0-8]: "
+    echo -n "  Enter choice [0-8]: "
     read -r choice
     
     while [[ ! "$choice" =~ ^[0-8]$ ]]; do
@@ -67,25 +67,25 @@ show_main_menu() {
         6) view_output ;;
         7) configuration ;;
         8) timeline_tracker ;;
-        0) echo -e "\n${GREEN}Goodbye!${NC}\n"; exit 0 ;;
+        0) echo ""; echo "  Goodbye!"; echo ""; exit 0 ;;
         *) show_main_menu ;;
     esac
 }
 
 quick_analysis() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              Q U I C K   A N A L Y S I S                 ${NC}"
-    echo -e "${YELLOW}              (Currents API - 600 requests/day)              ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m              Q U I C K   A N A L Y S I S                 "
+    echo -e "[1;33m              (Currents API - 600 requests/day)              "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
-    echo -e "${CYAN}  One-shot Currents API analysis${NC}"
+    echo -e "[0;36m  One-shot Currents API analysis"
     echo
-    echo -ne "${GREEN}  > Search query: ${NC}"
+    echo -ne "[0;32m  > Search query: "
     read -r query
     query=${query:-"future leaks"}
     
-    echo -ne "${GREEN}  > Items to fetch [25]: ${NC}"
+    echo -ne "[0;32m  > Items to fetch [25]: "
     read -r limit
     limit=${limit:-25}
     
@@ -96,12 +96,12 @@ quick_analysis() {
     mkdir -p "$OUTPUT_DIR"
     
     echo
-    echo -e "${GREEN}  Running... Currents API scrape + analyze + report${NC}"
-    echo -e "${CYAN}  Output: $OUTPUT_DIR${NC}"
+    echo -e "[0;32m  Running... Currents API scrape + analyze + report"
+    echo -e "[0;36m  Output: $OUTPUT_DIR"
     echo
     
     # Scrape News (Currents API) - save to timestamped dir
-    echo -e "${CYAN}  [1/3] Scraping News (Currents API)...${NC}"
+    echo -e "[0;36m  [1/3] Scraping News (Currents API)..."
     webbot2 scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
     
     # Get latest file from webbot2 output dir
@@ -113,12 +113,12 @@ quick_analysis() {
     
     # Check for mock data
     if grep -q '"mock_' "$news_file" 2>/dev/null; then
-        echo -e "${YELLOW}  ⚠ WARNING: News scraper not connected - using mock data${NC}"
+        echo -e "[1;33m  ⚠ WARNING: News scraper not connected - using mock data"
         echo
     fi
     
     if [ -n "$news_file" ] && [ -f "$news_file" ]; then
-        echo -e "${CYAN}  [2/3] Analyzing with LLM...${NC}"
+        echo -e "[0;36m  [2/3] Analyzing with LLM..."
         cp "$news_file" /tmp/analyze_input.json
         webbot2 analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
         
@@ -127,7 +127,7 @@ quick_analysis() {
             cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
         fi
         
-        echo -e "${CYAN}  [3/3] Generating report...${NC}"
+        echo -e "[0;36m  [3/3] Generating report..."
         
         # Prepend search info to report
         SEARCH_INFO="Search: $query | Limit: $limit | Timestamp: $TIMESTAMP"
@@ -150,26 +150,26 @@ quick_analysis() {
             mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
         fi
     else
-        echo -e "${RED}  No data scraped${NC}"
+        echo -e "[0;31m  No data scraped"
     fi
     
     # Update latest symlink
     ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
-    echo -e "${GREEN}  ✓ Quick analysis complete!${NC}"
-    echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
-    echo -e "${CYAN}  Latest: WEBBOT_OUTPUT_DIR/latest${NC}"
+    echo -e "[0;32m  ✓ Quick analysis complete!"
+    echo -e "[0;36m  Folder: $OUTPUT_DIR"
+    echo -e "[0;36m  Latest: WEBBOT_OUTPUT_DIR/latest"
     echo
     
     # Show the report
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  R E P O R T                                      ${YELLOW}${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m  R E P O R T                                      [1;33m"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
-    echo -e "${CYAN}  Query: ${GREEN}$query${NC}"
-    echo -e "${CYAN}  Platform: ${GREEN}Currents API (600/day)${NC}"
-    echo -e "${CYAN}  Timestamp: ${GREEN}$TIMESTAMP${NC}"
+    echo -e "[0;36m  Query: [0;32m$query"
+    echo -e "[0;36m  Platform: [0;32mCurrents API (600/day)"
+    echo -e "[0;36m  Timestamp: [0;32m$TIMESTAMP"
     echo
     cat "$OUTPUT_DIR/report.md"
     echo
@@ -179,18 +179,18 @@ quick_analysis() {
 
 newsapi_analysis() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}            N E W S A P I   A N A L Y S I S                ${NC}"
-    echo -e "${YELLOW}              (NewsAPI - 100 requests/day)                   ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m            N E W S A P I   A N A L Y S I S                "
+    echo -e "[1;33m              (NewsAPI - 100 requests/day)                   "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
-    echo -e "${CYAN}  One-shot NewsAPI analysis${NC}"
+    echo -e "[0;36m  One-shot NewsAPI analysis"
     echo
-    echo -ne "${GREEN}  > Search query: ${NC}"
+    echo -ne "[0;32m  > Search query: "
     read -r query
     query=${query:-"future leaks"}
     
-    echo -ne "${GREEN}  > Items to fetch [25]: ${NC}"
+    echo -ne "[0;32m  > Items to fetch [25]: "
     read -r limit
     limit=${limit:-25}
     
@@ -201,12 +201,12 @@ newsapi_analysis() {
     mkdir -p "$OUTPUT_DIR"
     
     echo
-    echo -e "${GREEN}  Running... NewsAPI scrape + analyze + report${NC}"
-    echo -e "${CYAN}  Output: $OUTPUT_DIR${NC}"
+    echo -e "[0;32m  Running... NewsAPI scrape + analyze + report"
+    echo -e "[0;36m  Output: $OUTPUT_DIR"
     echo
     
     # Scrape News (NewsAPI) - save to timestamped dir
-    echo -e "${CYAN}  [1/3] Scraping News (NewsAPI)...${NC}"
+    echo -e "[0;36m  [1/3] Scraping News (NewsAPI)..."
     webbot2 scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
     
     # Get latest file from webbot2 output
@@ -218,12 +218,12 @@ newsapi_analysis() {
     
     # Check for mock data
     if grep -q '"mock_' "$news_file" 2>/dev/null; then
-        echo -e "${YELLOW}  ⚠ WARNING: News scraper not connected - using mock data${NC}"
+        echo -e "[1;33m  ⚠ WARNING: News scraper not connected - using mock data"
         echo
     fi
     
     if [ -n "$news_file" ] && [ -f "$news_file" ]; then
-        echo -e "${CYAN}  [2/3] Analyzing with LLM...${NC}"
+        echo -e "[0;36m  [2/3] Analyzing with LLM..."
         cp "$news_file" /tmp/analyze_input.json
         webbot2 analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
         
@@ -232,7 +232,7 @@ newsapi_analysis() {
             cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
         fi
         
-        echo -e "${CYAN}  [3/3] Generating report...${NC}"
+        echo -e "[0;36m  [3/3] Generating report..."
         
         # Prepend search info to report
         SEARCH_INFO="Search: $query | Limit: $limit | Timestamp: $TIMESTAMP"
@@ -255,26 +255,26 @@ newsapi_analysis() {
             mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
         fi
     else
-        echo -e "${RED}  No data scraped${NC}"
+        echo -e "[0;31m  No data scraped"
     fi
     
     # Update latest symlink
     ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
-    echo -e "${GREEN}  ✓ NewsAPI analysis complete!${NC}"
-    echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
-    echo -e "${CYAN}  Latest: WEBBOT_OUTPUT_DIR/latest${NC}"
+    echo -e "[0;32m  ✓ NewsAPI analysis complete!"
+    echo -e "[0;36m  Folder: $OUTPUT_DIR"
+    echo -e "[0;36m  Latest: WEBBOT_OUTPUT_DIR/latest"
     echo
     
     # Show the report
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  R E P O R T                                      ${YELLOW}${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m  R E P O R T                                      [1;33m"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
-    echo -e "${CYAN}  Query: ${GREEN}$query${NC}"
-    echo -e "${CYAN}  Platform: ${GREEN}NewsAPI (100/day)${NC}"
-    echo -e "${CYAN}  Timestamp: ${GREEN}$TIMESTAMP${NC}"
+    echo -e "[0;36m  Query: [0;32m$query"
+    echo -e "[0;36m  Platform: [0;32mNewsAPI (100/day)"
+    echo -e "[0;36m  Timestamp: [0;32m$TIMESTAMP"
     echo
     cat "$OUTPUT_DIR/report.md"
     echo
@@ -288,13 +288,13 @@ newsapi_analysis() {
 
 myallies_analysis() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}           M Y A L L I E S   T R E N D S                    ${NC}"
-    echo -e "${YELLOW}              (Stock market trends API)                       ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m           M Y A L L I E S   T R E N D S                    "
+    echo -e "[1;33m              (Stock market trends API)                       "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
-    echo -e "${CYAN}  MyAllies API is not available.${NC}"
-    echo -e "${CYAN}  Requires account signup: https://www.myallies.com/api/authentication/${NC}"
+    echo -e "[0;36m  MyAllies API is not available."
+    echo -e "[0;36m  Requires account signup: https://www.myallies.com/api/authentication/"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -311,7 +311,7 @@ run_and_display() {
     mkdir -p "$OUTPUT_DIR"
     
     echo
-    echo -e "${CYAN}  [1/3] Scraping $platforms...${NC}"
+    echo -e "[0;36m  [1/3] Scraping $platforms..."
     
     case $platforms in
         "Reddit")
@@ -345,27 +345,27 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
     esac
     
     if [ -z "$data_file" ] || [ ! -f "$data_file" ]; then
-        echo -e "${RED}  ✗ No data scraped${NC}"
+        echo -e "[0;31m  ✗ No data scraped"
         return 1
     fi
     
     # Check for mock data
     if grep -q '"mock_' "$data_file" 2>/dev/null; then
-        echo -e "${YELLOW}  ⚠ WARNING: Some scrapers not connected - using mock data${NC}"
+        echo -e "[1;33m  ⚠ WARNING: Some scrapers not connected - using mock data"
         echo
     fi
     
-    echo -e "${CYAN}  [2/3] Analyzing with LLM (WebBot 2.0)...${NC}"
+    echo -e "[0;36m  [2/3] Analyzing with LLM (WebBot 2.0)..."
     webbot2 analyze llm "$data_file" --prompt-type webbot 2>&1 | tail -10
     
     if [ ! -f ~/.webbot2/output/analysis.json ]; then
-        echo -e "${RED}  ✗ Analysis failed${NC}"
+        echo -e "[0;31m  ✗ Analysis failed"
         return 1
     fi
     
     cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
     
-    echo -e "${CYAN}  [3/3] Generating report...${NC}"
+    echo -e "[0;36m  [3/3] Generating report..."
     webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
     
     # Add header
@@ -384,12 +384,12 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
     ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  R E P O R T                                      ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${CYAN}  Query: ${GREEN}$query${NC}"
-    echo -e "${CYAN}  Platforms: ${GREEN}$platforms${NC}"
-    echo -e "${CYAN}  Timestamp: ${GREEN}$TIMESTAMP${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m  R E P O R T                                      "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[0;36m  Query: [0;32m$query"
+    echo -e "[0;36m  Platforms: [0;32m$platforms"
+    echo -e "[0;36m  Timestamp: [0;32m$TIMESTAMP"
     echo
     cat "$OUTPUT_DIR/report.md"
     echo
@@ -398,29 +398,29 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
 
 run_full_pipeline() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              R U N   P I P E L I N E                       ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m              R U N   P I P E L I N E                       "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
-    echo -e "${CYAN}  Select:${NC}"
+    echo -e "[0;36m  Select:"
     echo "    [1] Reddit only     (works - real data)"
     echo "    [2] Reddit + News  (recommended)"
     echo "    [3] All platforms  (full)"
-    echo -ne "${GREEN}  > Mode [1-3]: ${NC}"
+    echo -ne "[0;32m  > Mode [1-3]: "
     read -r mode
     
     while [[ ! "$mode" =~ ^[1-3]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 1-3:${NC}"
-        echo -ne "${GREEN}  > Mode [1-3]: ${NC}"
+        echo -e "[0;31m  Invalid. Enter 1-3:"
+        echo -ne "[0;32m  > Mode [1-3]: "
         read -r mode
     done
     
     echo
-    echo -ne "${GREEN}  > Search query [future leaks]: ${NC}"
+    echo -ne "[0;32m  > Search query [future leaks]: "
     read -r query
     query=${query:-"future leaks"}
     
-    echo -ne "${GREEN}  > Limit [25]: ${NC}"
+    echo -ne "[0;32m  > Limit [25]: "
     read -r limit
     limit=${limit:-25}
     
@@ -436,23 +436,23 @@ run_full_pipeline() {
 # Not called - functionality covered elsewhere
 scrape_data() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              S C R A P E   D A T A                        ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m              S C R A P E   D A T A                        "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
     
-    echo -e "${CYAN}  Select platform:${NC}"
+    echo -e "[0;36m  Select platform:"
     echo "    [1] Twitter/X   (recommended - active discussions)"
     echo "    [2] Reddit     (forums & communities)"
     echo "    [3] YouTube    (video comments)"
     echo "    [4] Run full pipeline   (all above)"
     echo "    [0] Back"
-    echo -ne "${GREEN}  > Platform [0-4]: ${NC}"
+    echo -ne "[0;32m  > Platform [0-4]: "
     read -r platform
     
     while [[ ! "$platform" =~ ^[0-4]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 0-4:${NC}"
-        echo -ne "${GREEN}  > Platform [0-4]: ${NC}"
+        echo -e "[0;31m  Invalid. Enter 0-4:"
+        echo -ne "[0;32m  > Platform [0-4]: "
         read -r platform
     done
     
@@ -462,41 +462,41 @@ scrape_data() {
     fi
     
     echo
-    echo -e "${CYAN}  Search query${NC}"
-    echo -ne "${GREEN}  > Query: ${NC}"
+    echo -e "[0;36m  Search query"
+    echo -ne "[0;32m  > Query: "
     read -r query
     query=${query:-"future leaks"}
     
     echo
-    echo -ne "${GREEN}  > Limit: ${NC}"
+    echo -ne "[0;32m  > Limit: "
     read -r limit
     limit=${limit:-25}
     
     case $platform in
         1)
-            echo -e "${GREEN}  Scraping Twitter...${NC}"
+            echo -e "[0;32m  Scraping Twitter..."
             webbot2 scrape twitter --query "$query" --limit "$limit"
             ;;
         2)
-            echo -e "${CYAN}  Subreddit [default: all]${NC}"
-            echo -ne "${GREEN}  > Subreddit: ${NC}"
+            echo -e "[0;36m  Subreddit [default: all]"
+            echo -ne "[0;32m  > Subreddit: "
             read -r subreddit
             subreddit=${subreddit:-all}
-            echo -e "${GREEN}  Scraping Reddit...${NC}"
+            echo -e "[0;32m  Scraping Reddit..."
             webbot2 scrape reddit --subreddit "$subreddit" --query "$query" --limit "$limit"
             ;;
         3)
-            echo -e "${GREEN}  Scraping YouTube...${NC}"
+            echo -e "[0;32m  Scraping YouTube..."
             webbot2 scrape youtube --query "$query" --limit "$limit"
             ;;
         4)
-            echo -e "${GREEN}  Running full pipeline...${NC}"
+            echo -e "[0;32m  Running full pipeline..."
             webbot2 run-all --query "$query" --limit "$limit" 2>&1 | head -30
             ;;
     esac
     
     echo
-    echo -e "${GREEN}  ✓ Scraping complete!${NC}"
+    echo -e "[0;32m  ✓ Scraping complete!"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -504,23 +504,23 @@ scrape_data() {
 
 analyze_data() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              A N A L Y Z E   D A T A                        ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m              A N A L Y Z E   D A T A                        "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
     
-    echo -e "${CYAN}  Select LLM model:${NC}"
+    echo -e "[0;36m  Select LLM model:"
     echo "    [1] nvidia/nemotron-3-super-120b:a12b  (Largest)"
     echo "    [2] minimax-minimax-m2.5:free          (Balanced)"
     echo "    [3] openrouter/free                   (Auto)"
     echo "    [4] google/gemma-3-4b-it:free         (Fast)"
     echo "    [5] Use mock data                    (Skip API)"
-    echo -ne "${GREEN}  > Model [1-5]: ${NC}"
+    echo -ne "[0;32m  > Model [1-5]: "
     read -r model_choice
     
     while [[ ! "$model_choice" =~ ^[1-5]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 1-5:${NC}"
-        echo -ne "${GREEN}  > Model [1-5]: ${NC}"
+        echo -e "[0;31m  Invalid. Enter 1-5:"
+        echo -ne "[0;32m  > Model [1-5]: "
         read -r model_choice
     done
     
@@ -534,17 +534,17 @@ analyze_data() {
     esac
     
     echo
-    echo -e "${CYAN}  Select prompt type:${NC}"
+    echo -e "[0;36m  Select prompt type:"
     echo "    [1] webbot       (WebBot 2.0 - Recommended)"
     echo "    [2] event_stream (General patterns)"
     echo "    [3] globe_pop    (Global populations)"
     echo "    [4] us_pop       (US-specific)"
-    echo -ne "${GREEN}  > Prompt [1-4]: ${NC}"
+    echo -ne "[0;32m  > Prompt [1-4]: "
     read -r prompt_choice
     
     while [[ ! "$prompt_choice" =~ ^[1-4]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 1-4:${NC}"
-        echo -ne "${GREEN}  > Prompt [1-4]: ${NC}"
+        echo -e "[0;31m  Invalid. Enter 1-4:"
+        echo -ne "[0;32m  > Prompt [1-4]: "
         read -r prompt_choice
     done
     
@@ -557,7 +557,7 @@ analyze_data() {
     esac
     
     echo
-    echo -e "${CYAN}  Available data files:${NC}"
+    echo -e "[0;36m  Available data files:"
     
     json_files=$(ls -t WEBBOT_OUTPUT_DIR/*.json 2>/dev/null)
     total_files=$(echo "$json_files" | wc -l | tr -d ' ')
@@ -565,21 +565,21 @@ analyze_data() {
     if [ "$total_files" -gt 0 ] 2>/dev/null; then
         i=1
         for f in $json_files; do
-            echo -e "${CYAN}    [$i] $(basename "$f")${NC}"
+            echo -e "[0;36m    [$i] $(basename "$f")"
             i=$((i+1))
         done
     else
-        echo -e "${CYAN}    No files found${NC}"
+        echo -e "[0;36m    No files found"
     fi
     echo
     
     if [ "$total_files" -gt 0 ] 2>/dev/null; then
-        echo -ne "${GREEN}  > File [1-${total_files}]: ${NC}"
+        echo -ne "[0;32m  > File [1-${total_files}]: "
         read -r file_choice
         
         while [[ ! "$file_choice" =~ ^[0-9]+$ ]] || [ "$file_choice" -lt 1 ] || [ "$file_choice" -gt "$total_files" ]; do
-            echo -e "${RED}  Invalid. Enter 1-${total_files}:${NC}"
-            echo -ne "${GREEN}  > File [1-${total_files}]: ${NC}"
+            echo -e "[0;31m  Invalid. Enter 1-${total_files}:"
+            echo -ne "[0;32m  > File [1-${total_files}]: "
             read -r file_choice
         done
         
@@ -589,21 +589,21 @@ analyze_data() {
     fi
     
     if [ "$model" = "skip" ]; then
-        echo -e "${GREEN}  Analyzing with mock data...${NC}"
+        echo -e "[0;32m  Analyzing with mock data..."
     else
-        echo -e "${GREEN}  Analyzing with $model...${NC}"
+        echo -e "[0;32m  Analyzing with $model..."
     fi
     
     if [ -n "$input_file" ] && [ -f "$input_file" ]; then
         webbot2 analyze llm "$input_file" --prompt-type "$prompt_type" 2>&1
     else
-        echo -e "${RED}  ✗ No valid input file found. Run scrape first.${NC}"
+        echo -e "[0;31m  ✗ No valid input file found. Run scrape first."
     fi
     
     echo
-    echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║  ✓ Analysis complete!                                       ║${NC}"
-    echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "[0;32m╔═══════════════════════════════════════════════════════════════╗"
+    echo -e "[0;32m║  ✓ Analysis complete!                                       ║"
+    echo -e "[0;32m╚═══════════════════════════════════════════════════════════════╝"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -611,34 +611,34 @@ analyze_data() {
 
 generate_reports() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  ║         G E N E R A T E   R E P O R T S              ║${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m  ║         G E N E R A T E   R E P O R T S              ║"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
     
-    echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  Select report format:                                  ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}                                                         ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [1] ▶ Markdown Report (.md)                         ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [2] ▶ JSON Report (.json)                          ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [3] ▶ Audio/TTS (.mp3)                             ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [4] ▶ All Formats                                  ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}                                                         ${CYAN}│${NC}"
-    echo -e "${CYAN}  └─────────────────────────────────────────────────────────┘${NC}"
+    echo -e "[0;36m  ┌─────────────────────────────────────────────────────────┐"
+    echo -e "[0;36m  │  Select report format:                                  [0;36m│"
+    echo -e "[0;36m  │                                                         [0;36m│"
+    echo -e "[0;36m  │    [1] ▶ Markdown Report (.md)                         [0;36m│"
+    echo -e "[0;36m  │    [2] ▶ JSON Report (.json)                          [0;36m│"
+    echo -e "[0;36m  │    [3] ▶ Audio/TTS (.mp3)                             [0;36m│"
+    echo -e "[0;36m  │    [4] ▶ All Formats                                  [0;36m│"
+    echo -e "[0;36m  │                                                         [0;36m│"
+    echo -e "[0;36m  └─────────────────────────────────────────────────────────┘"
     echo
-    echo -ne "${GREEN}  ➜ Enter choice [1-4]: ${NC}"
+    echo -ne "[0;32m  ➜ Enter choice [1-4]: "
     read -r format
     
     while [[ ! "$format" =~ ^[1-4]$ ]]; do
-        echo -e "${RED}  ✗ Invalid choice. Please enter 1, 2, 3, or 4:${NC}"
-        echo -ne "${GREEN}  ➜ Enter choice [1-4]: ${NC}"
+        echo -e "[0;31m  ✗ Invalid choice. Please enter 1, 2, 3, or 4:"
+        echo -ne "[0;32m  ➜ Enter choice [1-4]: "
         read -r format
     done
     
     echo
-    echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  Available analysis files:                            ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}                                                         ${CYAN}│${NC}"
+    echo -e "[0;36m  ┌─────────────────────────────────────────────────────────┐"
+    echo -e "[0;36m  │  Available analysis files:                            [0;36m│"
+    echo -e "[0;36m  │                                                         [0;36m│"
     
     analysis_files=$(ls -t WEBBOT_OUTPUT_DIR/analysis*.json 2>/dev/null)
     total_afiles=$(echo "$analysis_files" | wc -l | tr -d ' ')
@@ -646,22 +646,22 @@ generate_reports() {
     if [ "$total_afiles" -gt 0 ] 2>/dev/null; then
         i=1
         for f in $analysis_files; do
-            echo -e "${CYAN}  │${NC}    [$i] $(basename "$f")${CYAN}│${NC}"
+            echo -e "[0;36m  │    [$i] $(basename "$f")[0;36m│"
             i=$((i+1))
         done
     else
-        echo -e "${CYAN}  │${NC}    No analysis files - run pipeline first             ${CYAN}│${NC}"
+        echo -e "[0;36m  │    No analysis files - run pipeline first             [0;36m│"
     fi
-    echo -e "${CYAN}  └─────────────────────────────────────────────────────────┘${NC}"
+    echo -e "[0;36m  └─────────────────────────────────────────────────────────┘"
     echo
     
     if [ "$total_afiles" -gt 0 ] 2>/dev/null; then
-        echo -ne "${GREEN}  ➜ Select file [1-${total_afiles}]: ${NC}"
+        echo -ne "[0;32m  ➜ Select file [1-${total_afiles}]: "
         read -r file_choice
         
         while [[ ! "$file_choice" =~ ^[0-9]+$ ]] || [ "$file_choice" -lt 1 ] || [ "$file_choice" -gt "$total_afiles" ]; do
-            echo -e "${RED}  ✗ Invalid. Enter 1-${total_afiles}:${NC}"
-            echo -ne "${GREEN}  ➜ Select file [1-${total_afiles}]: ${NC}"
+            echo -e "[0;31m  ✗ Invalid. Enter 1-${total_afiles}:"
+            echo -ne "[0;32m  ➜ Select file [1-${total_afiles}]: "
             read -r file_choice
         done
         
@@ -671,7 +671,7 @@ generate_reports() {
     fi
     
     if [ -z "$input_file" ] || [ ! -f "$input_file" ]; then
-        echo -e "${RED}  ✗ File not found or no files available${NC}"
+        echo -e "[0;31m  ✗ File not found or no files available"
         read -p "  Press Enter to continue..."
         show_main_menu
         return
@@ -679,20 +679,20 @@ generate_reports() {
     
     case $format in
         1)
-            echo -e "\n${GREEN}Generating Markdown report...${NC}"
+            echo -e "\n[0;32mGenerating Markdown report..."
             webbot2 report markdown "$input_file"
             ;;
         2)
-            echo -e "\n${GREEN}Generating JSON report...${NC}"
+            echo -e "\n[0;32mGenerating JSON report..."
             webbot2 report json "$input_file"
             ;;
         3)
-            echo -e "\n${CYAN}Select language:${NC}"
+            echo -e "\n[0;36mSelect language:"
             echo "1) English"
             echo "2) Spanish" 
             echo "3) French"
             echo "4) German"
-            echo -ne "${GREEN}Select [1-4]: ${NC}"
+            echo -ne "[0;32mSelect [1-4]: "
             read -r lang_choice
             case $lang_choice in
                 1) lang="en" ;;
@@ -701,11 +701,11 @@ generate_reports() {
                 4) lang="de" ;;
                 *) lang="en" ;;
             esac
-            echo -e "\n${GREEN}Generating Audio report...${NC}"
+            echo -e "\n[0;32mGenerating Audio report..."
             webbot2 report audio "$input_file" --lang "$lang"
             ;;
         4)
-            echo -e "\n${GREEN}Generating all reports...${NC}"
+            echo -e "\n[0;32mGenerating all reports..."
             webbot2 report markdown "$input_file"
             webbot2 report json "$input_file"
             webbot2 report audio "$input_file" --lang "en"
@@ -716,11 +716,11 @@ generate_reports() {
     esac
     
     echo
-    echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║  ✓ Reports generated successfully!                           ║${NC}"
-    echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "[0;32m╔═══════════════════════════════════════════════════════════════╗"
+    echo -e "[0;32m║  ✓ Reports generated successfully!                           ║"
+    echo -e "[0;32m╚═══════════════════════════════════════════════════════════════╝"
     echo
-    echo -e "${CYAN}  Output location: ${YELLOW}WEBBOT_OUTPUT_DIR/${NC}"
+    echo -e "[0;36m  Output location: [1;33mWEBBOT_OUTPUT_DIR/"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -728,13 +728,13 @@ generate_reports() {
 
 view_output() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  ║           V I E W   O U T P U T   F I L E S          ║${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m  ║           V I E W   O U T P U T   F I L E S          ║"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
     
     # List all run folders
-    echo -e "${CYAN}  Select a run:${NC}"
+    echo -e "[0;36m  Select a run:"
     echo
     
     # Get folders (not files), sorted by newest - only show those with reports
@@ -746,25 +746,25 @@ view_output() {
         for folder in $run_folders; do
             name=$(basename "$folder")
             if [ -f "$folder/report.md" ]; then
-                echo -e "${CYAN}    [$i] $name [report]${NC}"
+                echo -e "[0;36m    [$i] $name [report]"
                 i=$((i+1))
             fi
         done
         # Update total to reflect only folders with reports
         total=$((i-1))
         if [ "$total" -eq 0 ]; then
-            echo -e "${CYAN}    No reports found${NC}"
+            echo -e "[0;36m    No reports found"
             echo
-            echo -ne "${GREEN}  ➜ Press Enter to go back: ${NC}"
+            echo -ne "[0;32m  ➜ Press Enter to go back: "
             read -r
             show_main_menu
             return
         fi
-        echo -e "${CYAN}    [0] Back to main menu${NC}"
+        echo -e "[0;36m    [0] Back to main menu"
     else
-        echo -e "${CYAN}    No runs found${NC}"
+        echo -e "[0;36m    No runs found"
         echo
-        echo -ne "${GREEN}  ➜ Press Enter to go back: ${NC}"
+        echo -ne "[0;32m  ➜ Press Enter to go back: "
         read -r
         show_main_menu
         return
@@ -772,12 +772,12 @@ view_output() {
     echo
     
     if [ "$total" -gt 0 ]; then
-        echo -ne "${GREEN}  ➜ Select run [0-$total]: ${NC}"
+        echo -ne "[0;32m  ➜ Select run [0-$total]: "
         read -r sel
         
         while [[ ! "$sel" =~ ^[0-9]+$ ]] || [ "$sel" -lt 0 ] || [ "$sel" -gt "$total" ]; do
-            echo -e "${RED}  Invalid. Enter 0-$total:${NC}"
-            echo -ne "${GREEN}  ➜ Select run [0-$total]: ${NC}"
+            echo -e "[0;31m  Invalid. Enter 0-$total:"
+            echo -ne "[0;32m  ➜ Select run [0-$total]: "
             read -r sel
         done
         
@@ -789,19 +789,19 @@ view_output() {
         SELECTED_DIR=$(echo "$run_folders" | sed -n "${sel}p")
         
         if [ -f "$SELECTED_DIR/report.md" ]; then
-            echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-            echo -e "${YELLOW}  REPORT: $(basename "$SELECTED_DIR")${NC}"
-            echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
+            echo -e "\n[1;33m═══════════════════════════════════════════════════════════════"
+            echo -e "[1;33m  REPORT: $(basename "$SELECTED_DIR")"
+            echo -e "[1;33m═══════════════════════════════════════════════════════════════\n"
             cat "$SELECTED_DIR/report.md"
         elif [ -f "$SELECTED_DIR/analysis.json" ]; then
-            echo -e "\n${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-            echo -e "${YELLOW}  ANALYSIS: $(basename "$SELECTED_DIR")${NC}"
-            echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}\n"
+            echo -e "\n[1;33m═══════════════════════════════════════════════════════════════"
+            echo -e "[1;33m  ANALYSIS: $(basename "$SELECTED_DIR")"
+            echo -e "[1;33m═══════════════════════════════════════════════════════════════\n"
             cat "$SELECTED_DIR/analysis.json" | python3 -m json.tool | head -100
         elif [ -f "$SELECTED_DIR/data.json" ]; then
-            echo -e "${YELLOW}  Data only - no report. Run Quick Analysis to generate report.${NC}"
+            echo -e "[1;33m  Data only - no report. Run Quick Analysis to generate report."
         else
-            echo -e "${YELLOW}  Empty folder${NC}"
+            echo -e "[1;33m  Empty folder"
         fi
     fi
     
@@ -812,61 +812,61 @@ view_output() {
 
 configuration() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  ║         C O N F I G U R A T I O N                  ║${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m  ║         C O N F I G U R A T I O N                  ║"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
     
-    echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  Current Settings:                                      ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
+    echo -e "[0;36m  ┌─────────────────────────────────────────────────────────────┐"
+    echo -e "[0;36m  │  Current Settings:                                      [0;36m│"
+    echo -e "[0;36m  │                                                            [0;36m│"
     
     if [ -f ~/.webbot2.env ]; then
         while IFS= read -r line; do
-            echo -e "${CYAN}  │${NC}    $line${CYAN}                                          │${NC}"
+            echo -e "[0;36m  │    $line[0;36m                                          │"
         done < ~/.webbot2.env
     else
-        echo -e "${CYAN}  │${NC}    No config found (run setup)                           ${CYAN}│${NC}"
+        echo -e "[0;36m  │    No config found (run setup)                           [0;36m│"
     fi
-    echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "[0;36m  └─────────────────────────────────────────────────────────────┘"
     echo
     
-    echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  Options:                                                 ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [1] ▶ Set OpenRouter API Key                          ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [2] ▶ Set default LLM model                          ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [3] ▶ View available free models                     ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [4] ▶ Test API connection                            ${CYAN}│${NC}"
-    echo -e "${CYAN}  │${NC}    [0] ▶ Back to main menu                             ${CYAN}│${NC}"
-    echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "[0;36m  ┌─────────────────────────────────────────────────────────────┐"
+    echo -e "[0;36m  │  Options:                                                 [0;36m│"
+    echo -e "[0;36m  │                                                            [0;36m│"
+    echo -e "[0;36m  │    [1] ▶ Set OpenRouter API Key                          [0;36m│"
+    echo -e "[0;36m  │    [2] ▶ Set default LLM model                          [0;36m│"
+    echo -e "[0;36m  │    [3] ▶ View available free models                     [0;36m│"
+    echo -e "[0;36m  │    [4] ▶ Test API connection                            [0;36m│"
+    echo -e "[0;36m  │    [0] ▶ Back to main menu                             [0;36m│"
+    echo -e "[0;36m  └─────────────────────────────────────────────────────────────┘"
     echo
-    echo -ne "${GREEN}  ➜ Select option [0-4]: ${NC}"
+    echo -ne "[0;32m  ➜ Select option [0-4]: "
     read -r choice
     
     while [[ ! "$choice" =~ ^[0-4]$ ]]; do
-        echo -e "${RED}  ✗ Invalid. Enter 0-4:${NC}"
-        echo -ne "${GREEN}  ➜ Select option [0-4]: ${NC}"
+        echo -e "[0;31m  ✗ Invalid. Enter 0-4:"
+        echo -ne "[0;32m  ➜ Select option [0-4]: "
         read -r choice
     done
     
     case $choice in
         1)
-            echo -e "\n${CYAN}Enter your OpenRouter API key:${NC}"
+            echo -e "\n[0;36mEnter your OpenRouter API key:"
             echo "(Get free key at https://openrouter.ai/keys)"
             read -r api_key
             if [ -n "$api_key" ]; then
                 echo "OPENROUTER_API_KEY=$api_key" > ~/.webbot2.env
-                echo -e "${GREEN}API key saved!${NC}"
+                echo -e "[0;32mAPI key saved!"
             fi
             ;;
         2)
-            echo -e "\n${CYAN}Available free models:${NC}"
+            echo -e "\n[0;36mAvailable free models:"
             echo "1) nvidia/nemotron-3-super-120b-a12b:free"
             echo "2) minimax/minimax-m2.5:free"
             echo "3) openrouter/free"
             echo "4) google/gemma-3-4b-it:free"
-            echo -ne "${GREEN}Select default [1-4]: ${NC}"
+            echo -ne "[0;32mSelect default [1-4]: "
             read -r model_choice
             case $model_choice in
                 1) model="nvidia/nemotron-3-super-120b-a12b:free" ;;
@@ -876,13 +876,13 @@ configuration() {
                 *) model="nvidia/nemotron-3-super-120b-a12b:free" ;;
             esac
             echo "OPENROUTER_MODEL=$model" >> ~/.webbot2.env
-            echo -e "${GREEN}Default model set to: $model${NC}"
+            echo -e "[0;32mDefault model set to: $model"
             ;;
         3)
             show_free_models
             ;;
         4)
-            echo -e "\n${GREEN}Testing API key...${NC}"
+            echo -e "\n[0;32mTesting API key..."
             if [ -f ~/.webbot2.env ]; then
                 source ~/.webbot2.env
                 if [ -n "$OPENROUTER_API_KEY" ]; then
@@ -895,14 +895,14 @@ configuration() {
             fi
             ;;
         5)
-            echo -e "\n${CYAN}Enter alias name:${NC}"
+            echo -e "\n[0;36mEnter alias name:"
             read -r alias_name
-            echo -e "${CYAN}Enter query:${NC}"
+            echo -e "[0;36mEnter query:"
             read -r alias_query
-            echo -e "${CYAN}Enter limit:${NC}"
+            echo -e "[0;36mEnter limit:"
             read -r alias_limit
             echo "$alias_name|$alias_query|$alias_limit" >> ~/.webbot2_aliases
-            echo -e "${GREEN}Alias saved!${NC}"
+            echo -e "[0;32mAlias saved!"
             ;;
         0)
             show_main_menu
@@ -916,12 +916,12 @@ configuration() {
 
 show_free_models() {
     show_banner
-    echo -e "${YELLOW}=== AVAILABLE FREE LLM MODELS ===${NC}\n"
+    echo -e "[1;33m=== AVAILABLE FREE LLM MODELS ===\n"
     
     if [ -f ~/.webbot2.env ]; then
         source ~/.webbot2.env
         if [ -n "$OPENROUTER_API_KEY" ]; then
-            echo -e "${GREEN}Fetching models from OpenRouter...${NC}\n"
+            echo -e "[0;32mFetching models from OpenRouter...\n"
             curl -s "https://openrouter.ai/api/v1/models" -H "Authorization: Bearer $OPENROUTER_API_KEY" | python3 -c "
 import json,sys
 d = json.load(sys.stdin)
@@ -937,7 +937,7 @@ for m in d.get('data',[])[:30]:
         fi
     fi
     
-    echo -e "\n${CYAN}Recommended free models:${NC}"
+    echo -e "\n[0;36mRecommended free models:"
     echo "1) nvidia/nemotron-3-super-120b-a12b:free - Largest, slowest"
     echo "2) minimax/minimax-m2.5:free - Good balance"
     echo "3) openrouter/free - Auto-select"
@@ -951,40 +951,40 @@ for m in d.get('data',[])[:30]:
 
 show_help() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  ║              H E L P   &   I N F O                  ║${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m  ║              H E L P   &   I N F O                  ║"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
     
-    echo -e "${CYAN}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  ┌─────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  │  WHAT IT DOES:                                      │${NC}"
-    echo -e "${CYAN}  │${NC}  │  • Scrapes Twitter, Reddit, YouTube, News          │${NC}"
-    echo -e "${CYAN}  │${NC}  │  • Detects metaphors, archetypes, emotional spikes │${NC}"
-    echo -e "${CYAN}  │${NC}  │  • Finds \"future leak\" indicators                  │${NC}"
-    echo -e "${CYAN}  │${NC}  └─────────────────────────────────────────────────────┘${NC}"
+    echo -e "[0;36m  ┌─────────────────────────────────────────────────────────────┐"
+    echo -e "[0;36m  │  ┌─────────────────────────────────────────────────────┐"
+    echo -e "[0;36m  │  │  WHAT IT DOES:                                      │"
+    echo -e "[0;36m  │  │  • Scrapes Twitter, Reddit, YouTube, News          │"
+    echo -e "[0;36m  │  │  • Detects metaphors, archetypes, emotional spikes │"
+    echo -e "[0;36m  │  │  • Finds \"future leak\" indicators                  │"
+    echo -e "[0;36m  │  └─────────────────────────────────────────────────────┘"
     echo
     
-    echo -e "${CYAN}  │${NC}  ┌─────────────────────────────────────────────────────┐${NC}"
-    echo -e "${CYAN}  │${NC}  │  HOW IT WORKS (NO API KEYS NEEDED):                 │${NC}"
-    echo -e "${CYAN}  │${NC}  │  • Twitter:   Nitter (nitter.net)                   │${NC}"
-    echo -e "${CYAN}  │${NC}  │  • Reddit:    Old Reddit (old.reddit.com)           │${NC}"
-    echo -e "${CYAN}  │${NC}  │  • YouTube:   Invidious (yewtu.be)                  │${NC}"
-    echo -e "${CYAN}  │${NC}  │  • News:      RSS feeds (BBC, Reuters)              │${NC}"
-    echo -e "${CYAN}  │${NC}  └─────────────────────────────────────────────────────┘${NC}"
+    echo -e "[0;36m  │  ┌─────────────────────────────────────────────────────┐"
+    echo -e "[0;36m  │  │  HOW IT WORKS (NO API KEYS NEEDED):                 │"
+    echo -e "[0;36m  │  │  • Twitter:   Nitter (nitter.net)                   │"
+    echo -e "[0;36m  │  │  • Reddit:    Old Reddit (old.reddit.com)           │"
+    echo -e "[0;36m  │  │  • YouTube:   Invidious (yewtu.be)                  │"
+    echo -e "[0;36m  │  │  • News:      RSS feeds (BBC, Reuters)              │"
+    echo -e "[0;36m  │  └─────────────────────────────────────────────────────┘"
     echo
     
-    echo -e "${CYAN}  └─────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "[0;36m  └─────────────────────────────────────────────────────────────┘"
     echo
     
-    echo -e "${YELLOW}  ┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${YELLOW}  │${NC}  FREE LLM OPTIONS:                                   ${YELLOW}│${NC}"
-    echo -e "${YELLOW}  │${NC}  • OpenRouter: https://openrouter.ai/keys            ${YELLOW}│${NC}"
-    echo -e "${YELLOW}  │${NC}  • Local:       brew install ollama                  ${YELLOW}│${NC}"
-    echo -e "${YELLOW}  └─────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "[1;33m  ┌─────────────────────────────────────────────────────────────┐"
+    echo -e "[1;33m  │  FREE LLM OPTIONS:                                   [1;33m│"
+    echo -e "[1;33m  │  • OpenRouter: https://openrouter.ai/keys            [1;33m│"
+    echo -e "[1;33m  │  • Local:       brew install ollama                  [1;33m│"
+    echo -e "[1;33m  └─────────────────────────────────────────────────────────────┘"
     echo
     
-    echo -e "${GREEN}  Example Queries:${NC}"
+    echo -e "[0;32m  Example Queries:"
     echo "    • future leaks / future predictions"
     echo "    • AI consciousness / artificial general intelligence"
     echo "    • economic shift / market trends"
@@ -992,7 +992,7 @@ show_help() {
     echo "    • emerging technology"
     echo
     
-    echo -e "${CYAN}  Output: ${GREEN}WEBBOT_OUTPUT_DIR/${NC}"
+    echo -e "[0;36m  Output: [0;32mWEBBOT_OUTPUT_DIR/"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -1000,16 +1000,16 @@ show_help() {
 
 timeline_tracker() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}         T I M E L I N E   T R A C K E R                   ${NC}"
-    echo -e "${YELLOW}         (Batch analyze ALTA reports → timeline)            ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m         T I M E L I N E   T R A C K E R                   "
+    echo -e "[1;33m         (Batch analyze ALTA reports → timeline)            "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
     
     ANALYSIS_DIR="$HOME/Documents/clif-high-webbot/analysis_input"
     
     if [ ! -d "$ANALYSIS_DIR" ]; then
-        echo -e "${RED}  ✗ Analysis directory not found: $ANALYSIS_DIR${NC}"
+        echo -e "[0;31m  ✗ Analysis directory not found: $ANALYSIS_DIR"
         echo
         read -p "  Press Enter to continue..."
         show_main_menu
@@ -1021,27 +1021,27 @@ timeline_tracker() {
     total_pdfs=$(echo "$pdf_files" | wc -l | tr -d ' ')
     
     if [ "$total_pdfs" -eq 0 ]; then
-        echo -e "${RED}  ✗ No PDF files found in $ANALYSIS_DIR${NC}"
+        echo -e "[0;31m  ✗ No PDF files found in $ANALYSIS_DIR"
         echo
         read -p "  Press Enter to continue..."
         show_main_menu
         return
     fi
     
-    echo -e "${CYAN}  Found ${GREEN}$total_pdfs${CYAN} PDF files in analysis folder${NC}"
+    echo -e "[0;36m  Found [0;32m$total_pdfs[0;36m PDF files in analysis folder"
     echo
-    echo -e "${CYAN}  Options:${NC}"
+    echo -e "[0;36m  Options:"
     echo "    [1] Analyze all PDFs (batch)"
     echo "    [2] Use existing analyses (faster)"
     echo "    [3] Build Correlation Graph (from existing analyses)"
     echo "    [0] Back"
     echo
-    echo -ne "${GREEN}  > Choice [0-3]: ${NC}"
+    echo -ne "[0;32m  > Choice [0-3]: "
     read -r mode
     
     while [[ ! "$mode" =~ ^[0-3]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 0-3:${NC}"
-        echo -ne "${GREEN}  > Choice [0-3]: ${NC}"
+        echo -e "[0;31m  Invalid. Enter 0-3:"
+        echo -ne "[0;32m  > Choice [0-3]: "
         read -r mode
     done
     
@@ -1053,10 +1053,10 @@ timeline_tracker() {
     # Option 3: Build correlation graph
     if [ "$mode" = "3" ]; then
         show_banner
-        echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-        echo -e "${YELLOW}         C O R R E L A T I O N   G R A P H                 ${NC}"
-        echo -e "${YELLOW}         (Build relational graph from predictions)          ${NC}"
-        echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+        echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+        echo -e "[1;33m         C O R R E L A T I O N   G R A P H                 "
+        echo -e "[1;33m         (Build relational graph from predictions)          "
+        echo -e "[1;33m═══════════════════════════════════════════════════════════════"
         echo
         
         # Find all analysis folders with data
@@ -1066,13 +1066,13 @@ timeline_tracker() {
         total_folders=$(echo "$analysis_folders" | wc -l | tr -d ' ')
         
         if [ "$total_folders" -eq 0 ] || [ -z "$analysis_folders" ]; then
-            echo -e "${RED}  No analysis folders found${NC}"
+            echo -e "[0;31m  No analysis folders found"
             read -p "  Press Enter to continue..."
             show_main_menu
             return
         fi
         
-        echo -e "${CYAN}  Found ${GREEN}$total_folders${CYAN} analysis folders${NC}"
+        echo -e "[0;36m  Found [0;32m$total_folders[0;36m analysis folders"
         echo
         
         # Create a temp dir for all analyses (with unique names)
@@ -1082,27 +1082,27 @@ timeline_tracker() {
             cp "$folder/analysis.json" "$GRAPH_INPUT/${folder_name}_analysis.json" 2>/dev/null
         done
         
-        echo -e "${CYAN}  Copied $(ls "$GRAPH_INPUT" | wc -l | tr -d ' ') analyses to temp dir${NC}"
+        echo -e "[0;36m  Copied $(ls "$GRAPH_INPUT" | wc -l | tr -d ' ') analyses to temp dir"
         
         TIMESTAMP=$(date +%Y%m%d_%H%M%S)
         GRAPH_OUTPUT=WEBBOT_OUTPUT_DIR/${TIMESTAMP}_graph
         
-        echo -e "${CYAN}  Building correlation graph...${NC}"
+        echo -e "[0;36m  Building correlation graph..."
         
         python3 -m webbot2_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.json" --format json 2>&1
         
         if [ -f "$GRAPH_OUTPUT.json" ]; then
             echo
-            echo -e "${GREEN}  ✓ Graph created!${NC}"
-            echo -e "${CYAN}  Output: $GRAPH_OUTPUT.json${NC}"
+            echo -e "[0;32m  ✓ Graph created!"
+            echo -e "[0;36m  Output: $GRAPH_OUTPUT.json"
             echo
-            echo -e "${CYAN}  Visualization options:${NC}"
+            echo -e "[0;36m  Visualization options:"
             echo "    1) Open in browser (simple viewer)"
             echo "    2) Export as GraphML (for Gephi)"
             echo "    3) Both"
             echo "    0) Skip"
             echo
-            echo -ne "${GREEN}  > Choice [0-3]: ${NC}"
+            echo -ne "[0;32m  > Choice [0-3]: "
             read -r vis_choice
             
             if [ "$vis_choice" = "1" ] || [ "$vis_choice" = "3" ]; then
@@ -1126,15 +1126,15 @@ PYEOF
             
             if [ "$vis_choice" = "2" ] || [ "$vis_choice" = "3" ]; then
                 python3 -m webbot2_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.graphml" --format graphml 2>&1
-                echo -e "${CYAN}  GraphML: $GRAPH_OUTPUT.graphml${NC}"
+                echo -e "[0;36m  GraphML: $GRAPH_OUTPUT.graphml"
             fi
             
             if [ "$vis_choice" = "0" ]; then
-                echo -e "${CYAN}  Graph saved to: $GRAPH_OUTPUT.json${NC}"
-                echo -e "${CYAN}  Run with --format graphml for Gephi${NC}"
+                echo -e "[0;36m  Graph saved to: $GRAPH_OUTPUT.json"
+                echo -e "[0;36m  Run with --format graphml for Gephi"
             fi
         else
-            echo -e "${RED}  Graph generation failed${NC}"
+            echo -e "[0;31m  Graph generation failed"
         fi
         
         rm -rf "$GRAPH_INPUT"
@@ -1188,17 +1188,17 @@ PYEOF
             if [ -f "$OUTPUT_DIR/${analysis_name}_analysis.json" ]; then
                 return 0  # Already processed
             fi
-            echo -e "${CYAN}  Using: $analysis_name${NC}"
+            echo -e "[0;36m  Using: $analysis_name"
             cp "$existing_analysis" "$OUTPUT_DIR/${analysis_name}_analysis.json"
             return 0
         fi
         
         if [ "$mode" = "2" ]; then
-            echo -e "${YELLOW}  Skipping: $filename (no analysis found)${NC}"
+            echo -e "[1;33m  Skipping: $filename (no analysis found)"
             return 1
         fi
         
-        echo -e "${CYAN}  Analyzing: $filename (year: $pdf_year)${NC}"
+        echo -e "[0;36m  Analyzing: $filename (year: $pdf_year)"
         
         # Extract text
         TMP_TEXT=/tmp/timeline_$$.txt
@@ -1219,7 +1219,7 @@ except Exception as e:
 " 2>/dev/null
         
         if [ ! -s "$TMP_TEXT" ]; then
-            echo -e "${RED}  Failed: $filename${NC}"
+            echo -e "[0;31m  Failed: $filename"
             rm -f "$TMP_TEXT"
             return 1
         fi
@@ -1245,7 +1245,7 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     
     # Process all PDFs (with deduplication)
     echo
-    echo -e "${YELLOW}  Processing PDFs...${NC}"
+    echo -e "[1;33m  Processing PDFs..."
     
     set +e
     processed Analyses=""
@@ -1256,8 +1256,8 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     
     # Extract temporal data from all analyses
     echo
-    echo -e "${YELLOW}  Building timeline...${NC}"
-    echo -e "${CYAN}  Debug: Checking analysis files in $OUTPUT_DIR${NC}"
+    echo -e "[1;33m  Building timeline..."
+    echo -e "[0;36m  Debug: Checking analysis files in $OUTPUT_DIR"
     
     # Collect all temporal anomalies into a single JSON
     cat > /tmp/timeline_extract.py << ENDPY
@@ -1394,7 +1394,7 @@ ENDPY
     python3 /tmp/timeline_extract.py
     
     if [ ! -f "$OUTPUT_DIR/timeline_data.json" ]; then
-        echo -e "${RED}  ✗ Failed to build timeline${NC}"
+        echo -e "[0;31m  ✗ Failed to build timeline"
         read -p "  Press Enter to continue..."
         show_main_menu
         return
@@ -1402,11 +1402,11 @@ ENDPY
     
     # Display timeline
     echo
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}               T I M E L I N E   R E P O R T                  ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m               T I M E L I N E   R E P O R T                  "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
-    echo -e "${CYAN}  Current Year: ${GREEN}$CURRENT_YEAR${NC}"
+    echo -e "[0;36m  Current Year: [0;32m$CURRENT_YEAR"
     echo
     
     python3 -c "
@@ -1486,8 +1486,8 @@ print(f'Total: {len(predictions)} | Past: {len(past)} | Now: {len(now)} | Future
     ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
-    echo -e "${GREEN}  ✓ Timeline complete!${NC}"
-    echo -e "${CYAN}  Saved to: $OUTPUT_DIR/timeline_report.md${NC}"
+    echo -e "[0;32m  ✓ Timeline complete!"
+    echo -e "[0;36m  Saved to: $OUTPUT_DIR/timeline_report.md"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -1495,24 +1495,24 @@ print(f'Total: {len(predictions)} | Past: {len(past)} | Now: {len(now)} | Future
 
 analyze_local_file() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}         A N A L Y Z E   L O C A L   F I L E               ${NC}"
-    echo -e "${YELLOW}              (PDF or Markdown files)                         ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m         A N A L Y Z E   L O C A L   F I L E               "
+    echo -e "[1;33m              (PDF or Markdown files)                         "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
     
-    echo -e "${CYAN}  Enter path to file (PDF or Markdown):${NC}"
-    echo -e "${CYAN}  Tip: Drag & drop file from Finder to get path${NC}"
-    echo -e "${CYAN}  Example: ~/Documents/clif-high-webbot/analysis_input/ALTA_2016_April.pdf${NC}"
+    echo -e "[0;36m  Enter path to file (PDF or Markdown):"
+    echo -e "[0;36m  Tip: Drag & drop file from Finder to get path"
+    echo -e "[0;36m  Example: ~/Documents/clif-high-webbot/analysis_input/ALTA_2016_April.pdf"
     echo
-    echo -ne "${GREEN}  > File path: ${NC}"
+    echo -ne "[0;32m  > File path: "
     read -r file_path
     
     # Expand ~ to home directory
     file_path="${file_path/#\~/$HOME}"
     
     if [ ! -f "$file_path" ]; then
-        echo -e "${RED}  ✗ File not found: $file_path${NC}"
+        echo -e "[0;31m  ✗ File not found: $file_path"
         echo
         read -p "  Press Enter to continue..."
         show_main_menu
@@ -1524,8 +1524,8 @@ analyze_local_file() {
     ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
     
     if [ "$ext" != "pdf" ] && [ "$ext" != "md" ] && [ "$ext" != "markdown" ]; then
-        echo -e "${RED}  ✗ Unsupported file type: .$ext${NC}"
-        echo -e "${CYAN}  Supported: .pdf, .md, .markdown${NC}"
+        echo -e "[0;31m  ✗ Unsupported file type: .$ext"
+        echo -e "[0;36m  Supported: .pdf, .md, .markdown"
         echo
         read -p "  Press Enter to continue..."
         show_main_menu
@@ -1533,7 +1533,7 @@ analyze_local_file() {
     fi
     
     echo
-    echo -e "${CYAN}  Extracting text from .$ext file...${NC}"
+    echo -e "[0;36m  Extracting text from .$ext file..."
     
     # Create temp file for extracted text
     TMP_TEXT=/tmp/local_analyze_$$.txt
@@ -1556,7 +1556,7 @@ except Exception as e:
     sys.exit(1)
 " 2>&1
         if [ $? -ne 0 ] || [ ! -s "$TMP_TEXT" ]; then
-            echo -e "${RED}  ✗ Failed to extract text from PDF${NC}"
+            echo -e "[0;31m  ✗ Failed to extract text from PDF"
             rm -f "$TMP_TEXT"
             read -p "  Press Enter to continue..."
             show_main_menu
@@ -1588,15 +1588,15 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
 "
     rm -f "$TMP_TEXT"
     
-    echo -e "${CYAN}  Text extracted: $(wc -c < "$OUTPUT_DIR/data.json") bytes${NC}"
+    echo -e "[0;36m  Text extracted: $(wc -c < "$OUTPUT_DIR/data.json") bytes"
     echo
-    echo -e "${CYAN}  [1/2] Analyzing with LLM (WebBot 2.0)...${NC}"
+    echo -e "[0;36m  [1/2] Analyzing with LLM (WebBot 2.0)..."
     
     # Run analysis on the extracted text
     webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
     
     if [ ! -f ~/.webbot2/output/analysis.json ]; then
-        echo -e "${RED}  ✗ Analysis failed${NC}"
+        echo -e "[0;31m  ✗ Analysis failed"
         read -p "  Press Enter to continue..."
         show_main_menu
         return
@@ -1604,7 +1604,7 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     
     cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
     
-    echo -e "${CYAN}  [2/2] Generating report...${NC}"
+    echo -e "[0;36m  [2/2] Generating report..."
     webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
     
     # Add header to report
@@ -1623,18 +1623,18 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
-    echo -e "${GREEN}  ✓ Analysis complete!${NC}"
-    echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
+    echo -e "[0;32m  ✓ Analysis complete!"
+    echo -e "[0;36m  Folder: $OUTPUT_DIR"
     echo
     
     # Show the report
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  R E P O R T                                      ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+    echo -e "[1;33m  R E P O R T                                      "
+    echo -e "[1;33m═══════════════════════════════════════════════════════════════"
     echo
-    echo -e "${CYAN}  Source: ${GREEN}$file_path${NC}"
-    echo -e "${CYAN}  Type: ${GREEN}$ext${NC}"
-    echo -e "${CYAN}  Timestamp: ${GREEN}$TIMESTAMP${NC}"
+    echo -e "[0;36m  Source: [0;32m$file_path"
+    echo -e "[0;36m  Type: [0;32m$ext"
+    echo -e "[0;36m  Timestamp: [0;32m$TIMESTAMP"
     echo
     cat "$OUTPUT_DIR/report.md"
     echo
@@ -1644,25 +1644,25 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
 
 web_scraper_menu() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              W E B   S C R A P E R                        ${NC}"
-    echo -e "${YELLOW}              (Scrapy - fetch any URL)                     ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
-    echo -e "${CYAN}  Select mode:${NC}"
-    echo "    [1] Single URL      (enter URL manually)"
-    echo "    [2] Quick Presets   (popular sites)"
-    echo "    [3] Extract Links   (get all URLs from a page)"
-    echo "    [4] View History    (previous scrapes - analyze)"
+    echo "  WEB SCRAPER"
+    echo "  ==========="
+    echo "  (Scrapy - fetch any URL)"
+    echo
+    echo "  Select mode:"
+    echo "    [1] Single URL       (enter URL manually)"
+    echo "    [2] Quick Presets    (popular sites)"
+    echo "    [3] Extract Links    (get all URLs from a page)"
+    echo "    [4] View History     (previous scrapes - analyze)"
     echo "    [5] View Report     (view saved reports)"
     echo "    [0] Back"
     echo
-    echo -ne "${GREEN}  > Choice [0-5]: ${NC}"
+    echo -n "  > Choice [0-5]: "
     read -r mode
     
     while [[ ! "$mode" =~ ^[0-5]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 0-5:${NC}"
-        echo -ne "${GREEN}  > Choice [0-5]: ${NC}"
+        echo "  Invalid. Enter 0-5:"
+        echo -n "  > Choice [0-5]: "
         read -r mode
     done
     
@@ -1674,7 +1674,7 @@ web_scraper_menu() {
     # Add View Report option
     if [ "$mode" = "5" ]; then
         echo
-        echo -e "${CYAN}  Scrapes with reports:${NC}"
+        echo -e "[0;36m  Scrapes with reports:"
         echo
         
         folders=()
@@ -1692,16 +1692,16 @@ web_scraper_menu() {
             echo "  No reports found"
         else
             echo
-            echo -ne "${GREEN}  > Select [1-${#folders[@]} or 0 to back]: ${NC}"
+            echo -ne "[0;32m  > Select [1-${#folders[@]} or 0 to back]: "
             read -r sel
             
             if [[ "$sel" =~ ^[1-9]+$ ]] && [ "$sel" -le ${#folders[@]} ] && [ "$sel" -gt 0 ]; then
                 idx=$((sel - 1))
                 SELECTED_DIR="WEBBOT_OUTPUT_DIR/${folders[$idx]}"
                 echo
-                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-                echo -e "${YELLOW}  R E P O R T: ${folders[$idx]}${NC}"
-                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+                echo -e "[1;33m  R E P O R T: ${folders[$idx]}"
+                echo -e "[1;33m═══════════════════════════════════════════════════════════════"
                 echo
                 cat "$SELECTED_DIR/report.md"
             fi
@@ -1714,7 +1714,7 @@ web_scraper_menu() {
     if [ "$mode" = "4" ]; then
         # View history - analyze
         echo
-        echo -e "${CYAN}  Recent scrapes:${NC}"
+        echo -e "[0;36m  Recent scrapes:"
         echo
         
         folders=()
@@ -1739,32 +1739,32 @@ web_scraper_menu() {
         fi
         
         echo
-        echo -ne "${GREEN}  > Select [1-${#folders[@]} or 0 to back]: ${NC}"
+        echo -ne "[0;32m  > Select [1-${#folders[@]} or 0 to back]: "
         read -r sel
         
         if [[ "$sel" =~ ^[1-9]+$ ]] && [ "$sel" -le ${#folders[@]} ] && [ "$sel" -gt 0 ]; then
             idx=$((sel - 1))
             SELECTED_DIR="WEBBOT_OUTPUT_DIR/${folders[$idx]}"
             echo
-            echo -e "${CYAN}  Analyzing with LLM...${NC}"
+            echo -e "[0;36m  Analyzing with LLM..."
             webbot2 analyze llm "$SELECTED_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
             
             if [ -f ~/.webbot2/output/analysis.json ]; then
                 cp ~/.webbot2/output/analysis.json "$SELECTED_DIR/analysis.json"
                 
-                echo -e "${CYAN}  Generating report...${NC}"
+                echo -e "[0;36m  Generating report..."
                 webbot2 report markdown "$SELECTED_DIR/analysis.json" --output "$SELECTED_DIR/report.md" 2>&1 | tail -3
                 
                 ln -sf "$SELECTED_DIR" WEBBOT_OUTPUT_DIR/latest
                 
                 echo
-                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-                echo -e "${YELLOW}  R E P O R T                                      ${NC}"
-                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+                echo -e "[1;33m  R E P O R T                                      "
+                echo -e "[1;33m═══════════════════════════════════════════════════════════════"
                 echo
                 cat "$SELECTED_DIR/report.md"
             else
-                echo -e "${RED}  ✗ Analysis failed - no output${NC}"
+                echo -e "[0;31m  ✗ Analysis failed - no output"
             fi
         fi
         read -p "  Press Enter to continue..."
@@ -1775,11 +1775,11 @@ web_scraper_menu() {
     if [ "$mode" = "2" ]; then
         # Presets
         show_banner
-        echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-        echo -e "${YELLOW}              Q U I C K   P R E S E T S                     ${NC}"
-        echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+        echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+        echo -e "[1;33m              Q U I C K   P R E S E T S                     "
+        echo -e "[1;33m═══════════════════════════════════════════════════════════════"
         echo
-        echo -e "${CYAN}  Select a site:${NC}"
+        echo -e "[0;36m  Select a site:"
         echo "    [1] The Hacker News   (https://thehackernews.com/)"
         echo "    [2] Hacker News       (https://news.ycombinator.com/)"
         echo "    [3] Reddit r/all      (https://old.reddit.com/r/all/)"
@@ -1788,7 +1788,7 @@ web_scraper_menu() {
         echo "    [6] Ars Technica      (https://arstechnica.com/)"
         echo "    [0] Back"
         echo
-        echo -ne "${GREEN}  > Choice [0-6]: ${NC}"
+        echo -ne "[0;32m  > Choice [0-6]: "
         read -r preset
         
         case $preset in
@@ -1803,17 +1803,17 @@ web_scraper_menu() {
         esac
     elif [ "$mode" = "3" ]; then
         # Extract links
-        echo -e "${CYAN}  Enter URL to extract links from:${NC}"
-        echo -ne "${GREEN}  > URL: ${NC}"
+        echo -e "[0;36m  Enter URL to extract links from:"
+        echo -ne "[0;32m  > URL: "
         read -r url
         url=${url:-"https://news.ycombinator.com/"}
     else
         # Single URL
         echo
-        echo -e "${CYAN}  Enter a URL to scrape:${NC}"
-        echo -e "${CYAN}  Example: https://news.ycombinator.com/${NC}"
+        echo -e "[0;36m  Enter a URL to scrape:"
+        echo -e "[0;36m  Example: https://news.ycombinator.com/"
         echo
-        echo -ne "${GREEN}  > URL: ${NC}"
+        echo -ne "[0;32m  > URL: "
         read -r url
         
         url=${url:-"https://news.ycombinator.com/"}
@@ -1821,12 +1821,12 @@ web_scraper_menu() {
     
     # Content limit (controls how much text to fetch before processing)
     echo
-    echo -e "${CYAN}  Content limit:  (how much text to fetch before processing)${NC}"
+    echo -e "[0;36m  Content limit:  (how much text to fetch before processing)"
     echo "    [1] 10 KB    (~10K chars - fast, cheap for LLM)"
     echo "    [2] 50 KB    (~50K chars - moderate)"
     echo "    [3] 100 KB   (~100K chars - larger articles)"
     echo "    [4] Unlimited"
-    echo -ne "${GREEN}  > Choice [1-4]: ${NC}"
+    echo -ne "[0;32m  > Choice [1-4]: "
     read -r limit_choice
     case $limit_choice in
         1) char_limit=10240 ;;
@@ -1837,15 +1837,15 @@ web_scraper_menu() {
     
     # Export format
     echo
-    echo -e "${CYAN}  Export format:${NC}"
+    echo -e "[0;36m  Export format:"
     echo "    [1] JSON         (recommended for LLM analysis)"
     echo "    [2] Plain Text   (.txt)"
     echo "    [3] Markdown    (.md)"
-    echo -ne "${GREEN}  > Choice [1-3]: ${NC}"
+    echo -ne "[0;32m  > Choice [1-3]: "
     read -r format_choice
     
     echo
-    echo -e "${CYAN}  Fetching: $url${NC}"
+    echo -e "[0;36m  Fetching: $url"
     echo
     
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -1861,9 +1861,9 @@ web_scraper_menu() {
         if [ "$mode" = "3" ]; then
             echo "$scrapy_output" | grep -oE 'href="[^"]*"' | sed 's/href="//;s/"//' | grep -E '^https?://' > "$OUTPUT_DIR/links.txt"
             link_count=$(wc -l < "$OUTPUT_DIR/links.txt")
-            echo -e "${GREEN}  ✓ Extracted $link_count links${NC}"
+            echo -e "[0;32m  ✓ Extracted $link_count links"
             echo
-            echo -e "${YELLOW}  First 20 links:${NC}"
+            echo -e "[1;33m  First 20 links:"
             head -20 "$OUTPUT_DIR/links.txt"
             read -p "  Press Enter to continue..."
             web_scraper_menu
@@ -1922,17 +1922,17 @@ PYEOF
         esac
         
         echo
-        echo -e "${GREEN}  ✓ Scraping complete!${NC}"
-        echo -e "${CYAN}  Saved: $OUTPUT_DIR/data.json${NC}"
+        echo -e "[0;32m  ✓ Scraping complete!"
+        echo -e "[0;36m  Saved: $OUTPUT_DIR/data.json"
         
         if [ "$format_choice" = "2" ]; then
-            echo -e "${CYAN}  Text: $OUTPUT_DIR/scraped_content.txt${NC}"
+            echo -e "[0;36m  Text: $OUTPUT_DIR/scraped_content.txt"
         elif [ "$format_choice" = "3" ]; then
-            echo -e "${CYAN}  Markdown: $OUTPUT_DIR/scraped_content.md${NC}"
+            echo -e "[0;36m  Markdown: $OUTPUT_DIR/scraped_content.md"
         fi
         
         echo
-        echo -e "${YELLOW}  Preview (first 500 chars):${NC}"
+        echo -e "[1;33m  Preview (first 500 chars):"
         echo "---"
         python3 << PYEOF
 import json
@@ -1949,20 +1949,20 @@ PYEOF
         
         # Ask to analyze
         echo
-        echo -e "${CYAN}  Analyze this content with LLM?${NC}"
-        echo -e "${CYAN}    [1] Yes - analyze for predictions${NC}"
-        echo -e "${CYAN}    [2] No - just save${NC}"
-        echo -ne "${GREEN}  > Choice [1-2]: ${NC}"
+        echo -e "[0;36m  Analyze this content with LLM?"
+        echo -e "[0;36m    [1] Yes - analyze for predictions"
+        echo -e "[0;36m    [2] No - just save"
+        echo -ne "[0;32m  > Choice [1-2]: "
         read -r analyze_choice
         
         if [ "$analyze_choice" = "1" ]; then
-            echo -e "${CYAN}  Analyzing with LLM...${NC}"
+            echo -e "[0;36m  Analyzing with LLM..."
             webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
             
             if [ -f ~/.webbot2/output/analysis.json ]; then
                 cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
                 
-                echo -e "${CYAN}  Generating report...${NC}"
+                echo -e "[0;36m  Generating report..."
                 webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
                 
                 # Add header
@@ -1981,15 +1981,15 @@ PYEOF
                 ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
                 
                 echo
-                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-                echo -e "${YELLOW}  R E P O R T                                      ${NC}"
-                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo -e "[1;33m═══════════════════════════════════════════════════════════════"
+                echo -e "[1;33m  R E P O R T                                      "
+                echo -e "[1;33m═══════════════════════════════════════════════════════════════"
                 echo
                 cat "$OUTPUT_DIR/report.md"
             fi
         fi
     else
-        echo -e "${RED}  ✗ Failed to fetch URL${NC}"
+        echo -e "[0;31m  ✗ Failed to fetch URL"
     fi
     
     echo
