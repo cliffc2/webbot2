@@ -1,6 +1,16 @@
 #!/bin/bash
 
+# WebBot 2.0 - Predictive Linguistics CLI
+# TODO: Enable MyAllies API when account access granted - https://www.myallies.com/api/authentication/
+
 set -e
+
+# Get script directory for portability
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Set default output directory (can be overridden)
+WEBBOT_OUTPUT_DIR="${WEBBOT_OUTPUT_DIR:-$SCRIPT_DIR/output}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -44,32 +54,34 @@ show_main_menu() {
     echo -e "${YELLOW}                    M A I N   M E N U                       ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
-    echo -e "${CYAN}  [1] Quick Analysis     (Currents API → analyze → report)${NC}"
-    echo -e "${CYAN}  [2] NewsAPI Analysis  (NewsAPI → analyze → report)${NC}"
-    echo -e "${CYAN}  [3] Run Pipeline      (choose platforms)${NC}"
-    echo -e "${CYAN}  [4] View Results       (output folder)${NC}"
-    echo -e "${CYAN}  [5] Configuration     (API key, settings)${NC}"
-    echo -e "${CYAN}  [6] Analyze Local File (PDF/MD → report)${NC}"
-    echo -e "${CYAN}  [7] Timeline Tracker   (batch analyze → timeline view)${NC}"
+    echo -e "${CYAN}  [1] Web Scraper        (Scrapy - any URL)${NC}"
+    echo -e "${CYAN}  [2] Analyze Local File (PDF/MD → report)${NC}"
+    echo -e "${CYAN}  [3] Quick Analysis     (Currents API → analyze → report)${NC}"
+    echo -e "${CYAN}  [4] NewsAPI Analysis  (NewsAPI → analyze → report)${NC}"
+    echo -e "${CYAN}  [5] Run Pipeline       (choose platforms)${NC}"
+    echo -e "${CYAN}  [6] View Results       (output folder)${NC}"
+    echo -e "${CYAN}  [7] Configuration     (API key, settings)${NC}"
+    echo -e "${CYAN}  [8] Timeline Tracker   (batch analyze → timeline view)${NC}"
     echo -e "${CYAN}  [0] Exit${NC}"
     echo
-    echo -ne "${GREEN}  Enter choice [0-7]: ${NC}"
+    echo -ne "${GREEN}  Enter choice [0-8]: ${NC}"
     read -r choice
     
-    while [[ ! "$choice" =~ ^[0-7]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 0-7:${NC}"
-        echo -ne "${GREEN}  Enter choice [0-7]: ${NC}"
+    while [[ ! "$choice" =~ ^[0-8]$ ]]; do
+        echo -e "${RED}  Invalid. Enter 0-8:${NC}"
+        echo -ne "${GREEN}  Enter choice [0-8]: ${NC}"
         read -r choice
     done
     
     case $choice in
-        1) quick_analysis ;;
-        2) newsapi_analysis ;;
-        3) run_full_pipeline ;;
-        4) view_output ;;
-        5) configuration ;;
-        6) analyze_local_file ;;
-        7) timeline_tracker ;;
+        1) web_scraper_menu ;;
+        2) analyze_local_file ;;
+        3) quick_analysis ;;
+        4) newsapi_analysis ;;
+        5) run_full_pipeline ;;
+        6) view_output ;;
+        7) configuration ;;
+        8) timeline_tracker ;;
         0) echo -e "\n${GREEN}Goodbye!${NC}\n"; exit 0 ;;
         *) show_main_menu ;;
     esac
@@ -95,7 +107,7 @@ quick_analysis() {
     # Sanitize query for folder name
     query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -dc 'a-z0-9_' | cut -c1-15)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_${query_slug}
+    OUTPUT_DIR=WEBBOT_OUTPUT_DIR/${TIMESTAMP}_${query_slug}
     mkdir -p "$OUTPUT_DIR"
     
     echo
@@ -105,10 +117,13 @@ quick_analysis() {
     
     # Scrape News (Currents API) - save to timestamped dir
     echo -e "${CYAN}  [1/3] Scraping News (Currents API)...${NC}"
-    webbot2 scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
+    predictive-ling scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
     
-    # Get latest file and copy to timestamped dir
-    news_file=$(ls -t ~/.webbot2/output/news_*.json 2>/dev/null | head -1)
+    # Get latest file from predictive-ling output dir
+    news_file=$(ls -t ~/.predictive-ling/output/news_*.json 2>/dev/null | head -1)
+    if [ -z "$news_file" ]; then
+        news_file=$(ls -t WEBBOT_OUTPUT_DIR/news_*.json 2>/dev/null | head -1)
+    fi
     cp "$news_file" "$OUTPUT_DIR/data.json" 2>/dev/null
     
     # Check for mock data
@@ -120,11 +135,11 @@ quick_analysis() {
     if [ -n "$news_file" ] && [ -f "$news_file" ]; then
         echo -e "${CYAN}  [2/3] Analyzing with LLM...${NC}"
         cp "$news_file" /tmp/analyze_input.json
-        webbot2 analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
+        predictive-ling analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
         
         # Copy analysis to timestamped dir
-        if [ -f ~/.webbot2/output/analysis.json ]; then
-            cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
+        if [ -f ~/.predictive-ling/output/analysis.json ]; then
+            cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
         fi
         
         echo -e "${CYAN}  [3/3] Generating report...${NC}"
@@ -134,7 +149,7 @@ quick_analysis() {
         
         if [ -f "$OUTPUT_DIR/analysis.json" ]; then
             # Generate report with header info
-            webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
+            predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
             
             # Add header to report
             {
@@ -154,12 +169,12 @@ quick_analysis() {
     fi
     
     # Update latest symlink
-    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
+    ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
     echo -e "${GREEN}  ✓ Quick analysis complete!${NC}"
     echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
-    echo -e "${CYAN}  Latest: ~/.webbot2/output/latest${NC}"
+    echo -e "${CYAN}  Latest: WEBBOT_OUTPUT_DIR/latest${NC}"
     echo
     
     # Show the report
@@ -197,7 +212,7 @@ newsapi_analysis() {
     # Sanitize query for folder name
     query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -dc 'a-z0-9_' | cut -c1-15)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_${query_slug}_newsapi
+    OUTPUT_DIR=WEBBOT_OUTPUT_DIR/${TIMESTAMP}_${query_slug}_newsapi
     mkdir -p "$OUTPUT_DIR"
     
     echo
@@ -207,10 +222,13 @@ newsapi_analysis() {
     
     # Scrape News (NewsAPI) - save to timestamped dir
     echo -e "${CYAN}  [1/3] Scraping News (NewsAPI)...${NC}"
-    webbot2 scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
+    predictive-ling scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
     
-    # Get latest file and copy to timestamped dir
-    news_file=$(ls -t ~/.webbot2/output/news_*.json 2>/dev/null | head -1)
+    # Get latest file from predictive-ling output
+    news_file=$(ls -t ~/.predictive-ling/output/news_*.json 2>/dev/null | head -1)
+    if [ -z "$news_file" ]; then
+        news_file=$(ls -t WEBBOT_OUTPUT_DIR/news_*.json 2>/dev/null | head -1)
+    fi
     cp "$news_file" "$OUTPUT_DIR/data.json" 2>/dev/null
     
     # Check for mock data
@@ -222,11 +240,11 @@ newsapi_analysis() {
     if [ -n "$news_file" ] && [ -f "$news_file" ]; then
         echo -e "${CYAN}  [2/3] Analyzing with LLM...${NC}"
         cp "$news_file" /tmp/analyze_input.json
-        webbot2 analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
+        predictive-ling analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
         
         # Copy analysis to timestamped dir
-        if [ -f ~/.webbot2/output/analysis.json ]; then
-            cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
+        if [ -f ~/.predictive-ling/output/analysis.json ]; then
+            cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
         fi
         
         echo -e "${CYAN}  [3/3] Generating report...${NC}"
@@ -236,7 +254,7 @@ newsapi_analysis() {
         
         if [ -f "$OUTPUT_DIR/analysis.json" ]; then
             # Generate report with header info
-            webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
+            predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
             
             # Add header to report
             {
@@ -256,12 +274,12 @@ newsapi_analysis() {
     fi
     
     # Update latest symlink
-    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
+    ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
     echo -e "${GREEN}  ✓ NewsAPI analysis complete!${NC}"
     echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
-    echo -e "${CYAN}  Latest: ~/.webbot2/output/latest${NC}"
+    echo -e "${CYAN}  Latest: WEBBOT_OUTPUT_DIR/latest${NC}"
     echo
     
     # Show the report
@@ -279,32 +297,22 @@ newsapi_analysis() {
     show_main_menu
 }
 
-get_top_finding() {
-    local analysis_file=$1
-    if [ ! -f "$analysis_file" ]; then
-        echo ""
-        return
-    fi
-    
-    # Try to get top archetype, metaphor, or future_leak
-    top=$(python3 -c "
-import json, sys
-try:
-    with open('$analysis_file') as f:
-        data = json.load(f)
-    
-    # Priority: archetype > metaphor > future_leak
-    if data.get('archetypes'):
-        print(data['archetypes'][0].get('name', '').replace('The ', '').lower().replace(' ', '_'))
-    elif data.get('metaphors'):
-        print(data['metaphors'][0].get('term', '').lower().replace(' ', '_')[:20])
-    elif data.get('future_leaks'):
-        print(data['future_leaks'][0].get('indicator', '').lower().replace(' ', '_')[:20])
-except:
-    pass
-" 2>/dev/null)
-    
-    echo "$top"
+# MyAllies API - commented out until account access granted
+# https://www.myallies.com/api/authentication/
+# myallies_analysis() { ... }
+
+myallies_analysis() {
+    show_banner
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${YELLOW}           M Y A L L I E S   T R E N D S                    ${NC}"
+    echo -e "${YELLOW}              (Stock market trends API)                       ${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    echo -e "${CYAN}  MyAllies API is not available.${NC}"
+    echo -e "${CYAN}  Requires account signup: https://www.myallies.com/api/authentication/${NC}"
+    echo
+    read -p "  Press Enter to continue..."
+    show_main_menu
 }
 
 run_and_display() {
@@ -314,7 +322,7 @@ run_and_display() {
     
     query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -dc 'a-z0-9_' | cut -c1-15)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_${query_slug}
+    OUTPUT_DIR=WEBBOT_OUTPUT_DIR/${TIMESTAMP}_${query_slug}
     mkdir -p "$OUTPUT_DIR"
     
     echo
@@ -322,15 +330,18 @@ run_and_display() {
     
     case $platforms in
         "Reddit")
-            webbot2 scrape reddit --subreddit all --query "$query" --limit "$limit"
-            data_file=$(ls -t ~/.webbot2/output/reddit_*.json 2>/dev/null | head -1)
+            predictive-ling scrape reddit --subreddit all --query "$query" --limit "$limit"
+            data_file=$(ls -t WEBBOT_OUTPUT_DIR/reddit_*.json 2>/dev/null | head -1)
             cp "$data_file" "$OUTPUT_DIR/data.json" 2>/dev/null
             ;;
         "Reddit + News")
-            webbot2 scrape reddit --subreddit all --query "$query" --limit "$limit"
-            webbot2 scrape news --query "$query" --limit "$limit"
-            reddit_file=$(ls -t ~/.webbot2/output/reddit_*.json 2>/dev/null | head -1)
-            news_file=$(ls -t ~/.webbot2/output/news_*.json 2>/dev/null | head -1)
+            predictive-ling scrape reddit --subreddit all --query "$query" --limit "$limit"
+            predictive-ling scrape news --query "$query" --limit "$limit"
+            reddit_file=$(ls -t WEBBOT_OUTPUT_DIR/reddit_*.json 2>/dev/null | head -1)
+            news_file=$(ls -t ~/.predictive-ling/output/news_*.json 2>/dev/null | head -1)
+            if [ -z "$news_file" ]; then
+                news_file=$(ls -t WEBBOT_OUTPUT_DIR/news_*.json 2>/dev/null | head -1)
+            fi
             if [ -n "$reddit_file" ]; then
                 cp "$reddit_file" "$OUTPUT_DIR/data.json"
                 [ -n "$news_file" ] && python3 -c "
@@ -343,8 +354,8 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
             data_file="$OUTPUT_DIR/data.json"
             ;;
         "All Platforms")
-            webbot2 run-all --query "$query" --limit "$limit" 2>&1 | tail -10
-            data_file=$(ls -t ~/.webbot2/output/analysis.json 2>/dev/null | head -1)
+            predictive-ling run-all --query "$query" --limit "$limit" 2>&1 | tail -10
+            data_file=$(ls -t ~/.predictive-ling/output/analysis.json 2>/dev/null | head -1)
             ;;
     esac
     
@@ -360,17 +371,17 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
     fi
     
     echo -e "${CYAN}  [2/3] Analyzing with LLM (WebBot 2.0)...${NC}"
-    webbot2 analyze llm "$data_file" --prompt-type webbot 2>&1 | tail -10
+    predictive-ling analyze llm "$data_file" --prompt-type webbot 2>&1 | tail -10
     
-    if [ ! -f ~/.webbot2/output/analysis.json ]; then
+    if [ ! -f ~/.predictive-ling/output/analysis.json ]; then
         echo -e "${RED}  ✗ Analysis failed${NC}"
         return 1
     fi
     
-    cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
+    cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
     
     echo -e "${CYAN}  [3/3] Generating report...${NC}"
-    webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
+    predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
     
     # Add header
     {
@@ -385,7 +396,7 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
     } > "$OUTPUT_DIR/report.md.tmp"
     mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
     
-    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
+    ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
@@ -437,6 +448,7 @@ run_full_pipeline() {
     show_main_menu
 }
 
+# Not called - functionality covered elsewhere
 scrape_data() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
@@ -478,7 +490,7 @@ scrape_data() {
     case $platform in
         1)
             echo -e "${GREEN}  Scraping Twitter...${NC}"
-            webbot2 scrape twitter --query "$query" --limit "$limit"
+            predictive-ling scrape twitter --query "$query" --limit "$limit"
             ;;
         2)
             echo -e "${CYAN}  Subreddit [default: all]${NC}"
@@ -486,15 +498,15 @@ scrape_data() {
             read -r subreddit
             subreddit=${subreddit:-all}
             echo -e "${GREEN}  Scraping Reddit...${NC}"
-            webbot2 scrape reddit --subreddit "$subreddit" --query "$query" --limit "$limit"
+            predictive-ling scrape reddit --subreddit "$subreddit" --query "$query" --limit "$limit"
             ;;
         3)
             echo -e "${GREEN}  Scraping YouTube...${NC}"
-            webbot2 scrape youtube --query "$query" --limit "$limit"
+            predictive-ling scrape youtube --query "$query" --limit "$limit"
             ;;
         4)
             echo -e "${GREEN}  Running full pipeline...${NC}"
-            webbot2 run-all --query "$query" --limit "$limit" 2>&1 | head -30
+            predictive-ling run-all --query "$query" --limit "$limit" 2>&1 | head -30
             ;;
     esac
     
@@ -562,7 +574,7 @@ analyze_data() {
     echo
     echo -e "${CYAN}  Available data files:${NC}"
     
-    json_files=$(ls -t ~/.webbot2/output/*.json 2>/dev/null)
+    json_files=$(ls -t WEBBOT_OUTPUT_DIR/*.json 2>/dev/null)
     total_files=$(echo "$json_files" | wc -l | tr -d ' ')
     
     if [ "$total_files" -gt 0 ] 2>/dev/null; then
@@ -598,7 +610,7 @@ analyze_data() {
     fi
     
     if [ -n "$input_file" ] && [ -f "$input_file" ]; then
-        webbot2 analyze llm "$input_file" --prompt-type "$prompt_type" 2>&1
+        predictive-ling analyze llm "$input_file" --prompt-type "$prompt_type" 2>&1
     else
         echo -e "${RED}  ✗ No valid input file found. Run scrape first.${NC}"
     fi
@@ -643,7 +655,7 @@ generate_reports() {
     echo -e "${CYAN}  │${NC}  Available analysis files:                            ${CYAN}│${NC}"
     echo -e "${CYAN}  │${NC}                                                         ${CYAN}│${NC}"
     
-    analysis_files=$(ls -t ~/.webbot2/output/analysis*.json 2>/dev/null)
+    analysis_files=$(ls -t WEBBOT_OUTPUT_DIR/analysis*.json 2>/dev/null)
     total_afiles=$(echo "$analysis_files" | wc -l | tr -d ' ')
     
     if [ "$total_afiles" -gt 0 ] 2>/dev/null; then
@@ -683,11 +695,11 @@ generate_reports() {
     case $format in
         1)
             echo -e "\n${GREEN}Generating Markdown report...${NC}"
-            webbot2 report markdown "$input_file"
+            predictive-ling report markdown "$input_file"
             ;;
         2)
             echo -e "\n${GREEN}Generating JSON report...${NC}"
-            webbot2 report json "$input_file"
+            predictive-ling report json "$input_file"
             ;;
         3)
             echo -e "\n${CYAN}Select language:${NC}"
@@ -705,13 +717,13 @@ generate_reports() {
                 *) lang="en" ;;
             esac
             echo -e "\n${GREEN}Generating Audio report...${NC}"
-            webbot2 report audio "$input_file" --lang "$lang"
+            predictive-ling report audio "$input_file" --lang "$lang"
             ;;
         4)
             echo -e "\n${GREEN}Generating all reports...${NC}"
-            webbot2 report markdown "$input_file"
-            webbot2 report json "$input_file"
-            webbot2 report audio "$input_file" --lang "en"
+            predictive-ling report markdown "$input_file"
+            predictive-ling report json "$input_file"
+            predictive-ling report audio "$input_file" --lang "en"
             ;;
         *)
             show_main_menu
@@ -723,7 +735,7 @@ generate_reports() {
     echo -e "${GREEN}║  ✓ Reports generated successfully!                           ║${NC}"
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo
-    echo -e "${CYAN}  Output location: ${YELLOW}~/.webbot2/output/${NC}"
+    echo -e "${CYAN}  Output location: ${YELLOW}WEBBOT_OUTPUT_DIR/${NC}"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -740,25 +752,29 @@ view_output() {
     echo -e "${CYAN}  Select a run:${NC}"
     echo
     
-    # Get folders (not files), sorted by newest
-    run_folders=$(ls -td ~/.webbot2/output/*/ 2>/dev/null)
+    # Get folders (not files), sorted by newest - only show those with reports
+    run_folders=$(ls -td WEBBOT_OUTPUT_DIR/*/ 2>/dev/null)
     total=$(echo "$run_folders" | wc -l | tr -d ' ')
     
     if [ "$total" -gt 0 ] && [ -n "$run_folders" ]; then
         i=1
         for folder in $run_folders; do
             name=$(basename "$folder")
-            has_report="[report]"    # Check if folder has report.md
             if [ -f "$folder/report.md" ]; then
-                has_report="[report]"
-            elif [ ! -f "$folder/report.md" ] && [ -f "$folder/data.json" ]; then
-                has_report="[data only]"
-            else
-                has_report="[empty]"
+                echo -e "${CYAN}    [$i] $name [report]${NC}"
+                i=$((i+1))
             fi
-            echo -e "${CYAN}    [$i] $name $has_report${NC}"
-            i=$((i+1))
         done
+        # Update total to reflect only folders with reports
+        total=$((i-1))
+        if [ "$total" -eq 0 ]; then
+            echo -e "${CYAN}    No reports found${NC}"
+            echo
+            echo -ne "${GREEN}  ➜ Press Enter to go back: ${NC}"
+            read -r
+            show_main_menu
+            return
+        fi
         echo -e "${CYAN}    [0] Back to main menu${NC}"
     else
         echo -e "${CYAN}    No runs found${NC}"
@@ -820,10 +836,10 @@ configuration() {
     echo -e "${CYAN}  │${NC}  Current Settings:                                      ${CYAN}│${NC}"
     echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
     
-    if [ -f ~/.webbot2.env ]; then
+    if [ -f ~/.predictive-ling.env ]; then
         while IFS= read -r line; do
             echo -e "${CYAN}  │${NC}    $line${CYAN}                                          │${NC}"
-        done < ~/.webbot2.env
+        done < ~/.predictive-ling.env
     else
         echo -e "${CYAN}  │${NC}    No config found (run setup)                           ${CYAN}│${NC}"
     fi
@@ -855,7 +871,7 @@ configuration() {
             echo "(Get free key at https://openrouter.ai/keys)"
             read -r api_key
             if [ -n "$api_key" ]; then
-                echo "OPENROUTER_API_KEY=$api_key" > ~/.webbot2.env
+                echo "OPENROUTER_API_KEY=$api_key" > ~/.predictive-ling.env
                 echo -e "${GREEN}API key saved!${NC}"
             fi
             ;;
@@ -874,7 +890,7 @@ configuration() {
                 4) model="google/gemma-3-4b-it:free" ;;
                 *) model="nvidia/nemotron-3-super-120b-a12b:free" ;;
             esac
-            echo "OPENROUTER_MODEL=$model" >> ~/.webbot2.env
+            echo "OPENROUTER_MODEL=$model" >> ~/.predictive-ling.env
             echo -e "${GREEN}Default model set to: $model${NC}"
             ;;
         3)
@@ -882,8 +898,8 @@ configuration() {
             ;;
         4)
             echo -e "\n${GREEN}Testing API key...${NC}"
-            if [ -f ~/.webbot2.env ]; then
-                source ~/.webbot2.env
+            if [ -f ~/.predictive-ling.env ]; then
+                source ~/.predictive-ling.env
                 if [ -n "$OPENROUTER_API_KEY" ]; then
                     curl -s "https://openrouter.ai/api/v1/models" -H "Authorization: Bearer $OPENROUTER_API_KEY" | python3 -c "import json,sys; d=json.load(sys.stdin); print('✓ API key valid!' if 'data' in d else '✗ Invalid key')" 2>/dev/null || echo "✗ Connection error"
                 else
@@ -900,7 +916,7 @@ configuration() {
             read -r alias_query
             echo -e "${CYAN}Enter limit:${NC}"
             read -r alias_limit
-            echo "$alias_name|$alias_query|$alias_limit" >> ~/.webbot2_aliases
+            echo "$alias_name|$alias_query|$alias_limit" >> ~/.predictive-ling_aliases
             echo -e "${GREEN}Alias saved!${NC}"
             ;;
         0)
@@ -917,8 +933,8 @@ show_free_models() {
     show_banner
     echo -e "${YELLOW}=== AVAILABLE FREE LLM MODELS ===${NC}\n"
     
-    if [ -f ~/.webbot2.env ]; then
-        source ~/.webbot2.env
+    if [ -f ~/.predictive-ling.env ]; then
+        source ~/.predictive-ling.env
         if [ -n "$OPENROUTER_API_KEY" ]; then
             echo -e "${GREEN}Fetching models from OpenRouter...${NC}\n"
             curl -s "https://openrouter.ai/api/v1/models" -H "Authorization: Bearer $OPENROUTER_API_KEY" | python3 -c "
@@ -991,7 +1007,7 @@ show_help() {
     echo "    • emerging technology"
     echo
     
-    echo -e "${CYAN}  Output: ${GREEN}~/.webbot2/output/${NC}"
+    echo -e "${CYAN}  Output: ${GREEN}WEBBOT_OUTPUT_DIR/${NC}"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -1059,7 +1075,7 @@ timeline_tracker() {
         echo
         
         # Find all analysis folders with data
-        analysis_folders=$(ls -td ~/.webbot2/output/20* 2>/dev/null | while read d; do
+        analysis_folders=$(ls -td WEBBOT_OUTPUT_DIR/20* 2>/dev/null | while read d; do
             if [ -f "$d/analysis.json" ]; then echo "$d"; fi
         done)
         total_folders=$(echo "$analysis_folders" | wc -l | tr -d ' ')
@@ -1084,11 +1100,11 @@ timeline_tracker() {
         echo -e "${CYAN}  Copied $(ls "$GRAPH_INPUT" | wc -l | tr -d ' ') analyses to temp dir${NC}"
         
         TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-        GRAPH_OUTPUT=~/.webbot2/output/${TIMESTAMP}_graph
+        GRAPH_OUTPUT=WEBBOT_OUTPUT_DIR/${TIMESTAMP}_graph
         
         echo -e "${CYAN}  Building correlation graph...${NC}"
         
-        python3 -m webbot2_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.json" --format json 2>&1
+        python3 -m predictive_ling_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.json" --format json 2>&1
         
         if [ -f "$GRAPH_OUTPUT.json" ]; then
             echo
@@ -1106,7 +1122,7 @@ timeline_tracker() {
             
             if [ "$vis_choice" = "1" ] || [ "$vis_choice" = "3" ]; then
                 # Copy HTML viewer
-                cp "$(dirname "$0")/src/webbot2_cli/graph_viewer.html" "$GRAPH_OUTPUT.html"
+                cp "$(dirname "$0")/src/predictive_ling_cli/graph_viewer.html" "$GRAPH_OUTPUT.html"
                 # Embed graph data into HTML using Python
                 python3 << PYEOF
 import json, re, sys
@@ -1124,7 +1140,7 @@ PYEOF
             fi
             
             if [ "$vis_choice" = "2" ] || [ "$vis_choice" = "3" ]; then
-                python3 -m webbot2_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.graphml" --format graphml 2>&1
+                python3 -m predictive_ling_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.graphml" --format graphml 2>&1
                 echo -e "${CYAN}  GraphML: $GRAPH_OUTPUT.graphml${NC}"
             fi
             
@@ -1145,7 +1161,7 @@ PYEOF
     
     CURRENT_YEAR=$(date +%Y)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_timeline
+    OUTPUT_DIR=WEBBOT_OUTPUT_DIR/${TIMESTAMP}_timeline
     mkdir -p "$OUTPUT_DIR"
     
     # Function to extract year from filename (e.g., ALTA_2015_December -> 2015)
@@ -1173,12 +1189,12 @@ PYEOF
         normalized_lower=$(echo "$normalized" | tr '[:upper:]' '[:lower:]')
         if [ -n "$normalized" ]; then
             # Search for any folder containing the normalized name
-            existing_analysis=$(ls -t ~/.webbot2/output/*${normalized}*/analysis.json ~/.webbot2/output/*${normalized_lower}*/analysis.json 2>/dev/null | head -1)
+            existing_analysis=$(ls -t WEBBOT_OUTPUT_DIR/*${normalized}*/analysis.json WEBBOT_OUTPUT_DIR/*${normalized_lower}*/analysis.json 2>/dev/null | head -1)
         fi
         
         # Fallback: search all folders for analysis.json with matching year
         if [ -z "$existing_analysis" ]; then
-            existing_analysis=$(ls -t ~/.webbot2/output/*${pdf_year}*/analysis.json 2>/dev/null | head -1)
+            existing_analysis=$(ls -t WEBBOT_OUTPUT_DIR/*${pdf_year}*/analysis.json 2>/dev/null | head -1)
         fi
         
         if [ -n "$existing_analysis" ] && [ -f "$existing_analysis" ]; then
@@ -1235,10 +1251,10 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
         rm -f "$TMP_TEXT"
         
         # Run analysis
-        webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -3
+        predictive-ling analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -3
         
-        if [ -f ~/.webbot2/output/analysis.json ]; then
-            cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/${filename}_analysis.json"
+        if [ -f ~/.predictive-ling/output/analysis.json ]; then
+            cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/${filename}_analysis.json"
         fi
     }
     
@@ -1482,7 +1498,7 @@ print(f'Total: {len(predictions)} | Past: {len(past)} | Now: {len(now)} | Future
         cat "$OUTPUT_DIR/timeline_data.json"
     } > "$OUTPUT_DIR/timeline_report.md"
     
-    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
+    ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
     echo -e "${GREEN}  ✓ Timeline complete!${NC}"
@@ -1569,7 +1585,7 @@ except Exception as e:
     # Get file name for output folder
     filename=$(basename "$file_path" | sed 's/\.[^.]*$//')
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_${filename}
+    OUTPUT_DIR=WEBBOT_OUTPUT_DIR/${TIMESTAMP}_${filename}
     mkdir -p "$OUTPUT_DIR"
     
     # Copy source file to output
@@ -1592,19 +1608,19 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     echo -e "${CYAN}  [1/2] Analyzing with LLM (WebBot 2.0)...${NC}"
     
     # Run analysis on the extracted text
-    webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
+    predictive-ling analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
     
-    if [ ! -f ~/.webbot2/output/analysis.json ]; then
+    if [ ! -f ~/.predictive-ling/output/analysis.json ]; then
         echo -e "${RED}  ✗ Analysis failed${NC}"
         read -p "  Press Enter to continue..."
         show_main_menu
         return
     fi
     
-    cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
+    cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
     
     echo -e "${CYAN}  [2/2] Generating report...${NC}"
-    webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
+    predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
     
     # Add header to report
     {
@@ -1619,7 +1635,7 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
     
     # Update latest symlink
-    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
+    ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
     
     echo
     echo -e "${GREEN}  ✓ Analysis complete!${NC}"
@@ -1639,6 +1655,361 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
+}
+
+web_scraper_menu() {
+    show_banner
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${YELLOW}              W E B   S C R A P E R                        ${NC}"
+    echo -e "${YELLOW}              (Scrapy - fetch any URL)                     ${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo
+    echo -e "${CYAN}  Select mode:${NC}"
+    echo "    [1] Single URL      (enter URL manually)"
+    echo "    [2] Quick Presets   (popular sites)"
+    echo "    [3] Extract Links   (get all URLs from a page)"
+    echo "    [4] View History    (previous scrapes - analyze)"
+    echo "    [5] View Report     (view saved reports)"
+    echo "    [0] Back"
+    echo
+    echo -ne "${GREEN}  > Choice [0-5]: ${NC}"
+    read -r mode
+    
+    while [[ ! "$mode" =~ ^[0-5]$ ]]; do
+        echo -e "${RED}  Invalid. Enter 0-5:${NC}"
+        echo -ne "${GREEN}  > Choice [0-5]: ${NC}"
+        read -r mode
+    done
+    
+    if [ "$mode" = "0" ]; then
+        show_main_menu
+        return
+    fi
+    
+    # Add View Report option
+    if [ "$mode" = "5" ]; then
+        echo
+        echo -e "${CYAN}  Scrapes with reports:${NC}"
+        echo
+        
+        folders=()
+        i=1
+        for dir in $(ls -dt WEBBOT_OUTPUT_DIR/*/ 2>/dev/null | head -20); do
+            name=$(basename "$dir")
+            if [ -f "$dir/report.md" ]; then
+                echo "  [$i] $name [report]"
+                folders+=("$name")
+                i=$((i+1))
+            fi
+        done
+        
+        if [ ${#folders[@]} -eq 0 ]; then
+            echo "  No reports found"
+        else
+            echo
+            echo -ne "${GREEN}  > Select [1-${#folders[@]} or 0 to back]: ${NC}"
+            read -r sel
+            
+            if [[ "$sel" =~ ^[1-9]+$ ]] && [ "$sel" -le ${#folders[@]} ] && [ "$sel" -gt 0 ]; then
+                idx=$((sel - 1))
+                SELECTED_DIR="WEBBOT_OUTPUT_DIR/${folders[$idx]}"
+                echo
+                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo -e "${YELLOW}  R E P O R T: ${folders[$idx]}${NC}"
+                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo
+                cat "$SELECTED_DIR/report.md"
+            fi
+        fi
+        read -p "  Press Enter to continue..."
+        web_scraper_menu
+        return
+    fi
+    
+    if [ "$mode" = "4" ]; then
+        # View history - analyze
+        echo
+        echo -e "${CYAN}  Recent scrapes:${NC}"
+        echo
+        
+        folders=()
+        i=1
+        for dir in $(ls -dt WEBBOT_OUTPUT_DIR/*thehacker* WEBBOT_OUTPUT_DIR/*news* WEBBOT_OUTPUT_DIR/*reddit* 2>/dev/null | head -10); do
+            name=$(basename "$dir")
+            has_report="[✓report]"
+            [ ! -f "$dir/data.json" ] && has_report="[no data]"
+            [ -f "$dir/report.md" ] && has_report="[report]"
+            [ ! -f "$dir/report.md" ] && [ -f "$dir/analysis.json" ] && has_report="[analysis]"
+            [ ! -f "$dir/report.md" ] && [ ! -f "$dir/analysis.json" ] && [ -f "$dir/data.json" ] && has_report="[data]"
+            echo "  [$i] $name $has_report"
+            folders+=("$name")
+            i=$((i+1))
+        done
+        
+        if [ ${#folders[@]} -eq 0 ]; then
+            echo "  No scrapes found"
+            read -p "  Press Enter to continue..."
+            web_scraper_menu
+            return
+        fi
+        
+        echo
+        echo -ne "${GREEN}  > Select [1-${#folders[@]} or 0 to back]: ${NC}"
+        read -r sel
+        
+        if [[ "$sel" =~ ^[1-9]+$ ]] && [ "$sel" -le ${#folders[@]} ] && [ "$sel" -gt 0 ]; then
+            idx=$((sel - 1))
+            SELECTED_DIR="WEBBOT_OUTPUT_DIR/${folders[$idx]}"
+            echo
+            echo -e "${CYAN}  Analyzing with LLM...${NC}"
+            predictive-ling analyze llm "$SELECTED_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
+            
+            if [ -f ~/.predictive-ling/output/analysis.json ]; then
+                cp ~/.predictive-ling/output/analysis.json "$SELECTED_DIR/analysis.json"
+                
+                echo -e "${CYAN}  Generating report...${NC}"
+                predictive-ling report markdown "$SELECTED_DIR/analysis.json" --output "$SELECTED_DIR/report.md" 2>&1 | tail -3
+                
+                ln -sf "$SELECTED_DIR" WEBBOT_OUTPUT_DIR/latest
+                
+                echo
+                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo -e "${YELLOW}  R E P O R T                                      ${NC}"
+                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo
+                cat "$SELECTED_DIR/report.md"
+            else
+                echo -e "${RED}  ✗ Analysis failed - no output${NC}"
+            fi
+        fi
+        read -p "  Press Enter to continue..."
+        web_scraper_menu
+        return
+    fi
+    
+    if [ "$mode" = "2" ]; then
+        # Presets
+        show_banner
+        echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+        echo -e "${YELLOW}              Q U I C K   P R E S E T S                     ${NC}"
+        echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+        echo
+        echo -e "${CYAN}  Select a site:${NC}"
+        echo "    [1] The Hacker News   (https://thehackernews.com/)"
+        echo "    [2] Hacker News       (https://news.ycombinator.com/)"
+        echo "    [3] Reddit r/all      (https://old.reddit.com/r/all/)"
+        echo "    [4] BBC News         (https://www.bbc.com/news)"
+        echo "    [5] Wired            (https://www.wired.com/)"
+        echo "    [6] Ars Technica      (https://arstechnica.com/)"
+        echo "    [0] Back"
+        echo
+        echo -ne "${GREEN}  > Choice [0-6]: ${NC}"
+        read -r preset
+        
+        case $preset in
+            1) url="https://thehackernews.com/" ;;
+            2) url="https://news.ycombinator.com/" ;;
+            3) url="https://old.reddit.com/r/all/" ;;
+            4) url="https://www.bbc.com/news" ;;
+            5) url="https://www.wired.com/" ;;
+            6) url="https://arstechnica.com/" ;;
+            0) web_scraper_menu; return ;;
+            *) url="https://news.ycombinator.com/" ;;
+        esac
+    elif [ "$mode" = "3" ]; then
+        # Extract links
+        echo -e "${CYAN}  Enter URL to extract links from:${NC}"
+        echo -ne "${GREEN}  > URL: ${NC}"
+        read -r url
+        url=${url:-"https://news.ycombinator.com/"}
+    else
+        # Single URL
+        echo
+        echo -e "${CYAN}  Enter a URL to scrape:${NC}"
+        echo -e "${CYAN}  Example: https://news.ycombinator.com/${NC}"
+        echo
+        echo -ne "${GREEN}  > URL: ${NC}"
+        read -r url
+        
+        url=${url:-"https://news.ycombinator.com/"}
+    fi
+    
+    # Content limit (controls how much text to fetch before processing)
+    echo
+    echo -e "${CYAN}  Content limit:  (how much text to fetch before processing)${NC}"
+    echo "    [1] 10 KB    (~10K chars - fast, cheap for LLM)"
+    echo "    [2] 50 KB    (~50K chars - moderate)"
+    echo "    [3] 100 KB   (~100K chars - larger articles)"
+    echo "    [4] Unlimited"
+    echo -ne "${GREEN}  > Choice [1-4]: ${NC}"
+    read -r limit_choice
+    case $limit_choice in
+        1) char_limit=10240 ;;
+        2) char_limit=51200 ;;
+        3) char_limit=102400 ;;
+        *) char_limit=1000000 ;;
+    esac
+    
+    # Export format
+    echo
+    echo -e "${CYAN}  Export format:${NC}"
+    echo "    [1] JSON         (recommended for LLM analysis)"
+    echo "    [2] Plain Text   (.txt)"
+    echo "    [3] Markdown    (.md)"
+    echo -ne "${GREEN}  > Choice [1-3]: ${NC}"
+    read -r format_choice
+    
+    echo
+    echo -e "${CYAN}  Fetching: $url${NC}"
+    echo
+    
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    query_slug=$(echo "$url" | sed 's|https://||; s|http://||; s|www\.||' | cut -c1-20 | tr -dc 'a-z0-9')
+    OUTPUT_DIR=WEBBOT_OUTPUT_DIR/${TIMESTAMP}_${query_slug}
+    mkdir -p "$OUTPUT_DIR"
+    
+    # Run Scrapy
+    scrapy_output=$(scrapy fetch --nolog "$url" 2>&1) || true
+    
+    if [ -n "$scrapy_output" ]; then
+        # Extract links mode
+        if [ "$mode" = "3" ]; then
+            echo "$scrapy_output" | grep -oE 'href="[^"]*"' | sed 's/href="//;s/"//' | grep -E '^https?://' > "$OUTPUT_DIR/links.txt"
+            link_count=$(wc -l < "$OUTPUT_DIR/links.txt")
+            echo -e "${GREEN}  ✓ Extracted $link_count links${NC}"
+            echo
+            echo -e "${YELLOW}  First 20 links:${NC}"
+            head -20 "$OUTPUT_DIR/links.txt"
+            read -p "  Press Enter to continue..."
+            web_scraper_menu
+            return
+        fi
+        
+        # Save content based on format
+        case $format_choice in
+            2)
+                # Plain text
+                echo "$scrapy_output" > "$OUTPUT_DIR/scraped_content.txt"
+                content_for_json=$(python3 -c "import json; print(json.dumps({'source': 'Scrapy', 'url': '$url', 'content': open('$OUTPUT_DIR/scraped_content.txt').read()[:$char_limit]}))")
+                echo "$content_for_json" > "$OUTPUT_DIR/data.json"
+                ;;
+            3)
+                # Markdown - convert HTML to basic markdown
+                echo "$scrapy_output" | sed 's/<[^>]*>//g' | sed 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/</g; s/&gt;/>/g' > "$OUTPUT_DIR/scraped_content.md"
+                content_for_json=$(python3 -c "import json; print(json.dumps({'source': 'Scrapy', 'url': '$url', 'content': open('$OUTPUT_DIR/scraped_content.md').read()[:$char_limit]}))")
+                echo "$content_for_json" > "$OUTPUT_DIR/data.json"
+                ;;
+            *)
+                # JSON (default) - extract text from HTML
+                python3 << PYEOF
+import json
+import re
+
+content = """$scrapy_output"""
+
+# Strip script and style tags first
+content = re.sub(r'<script[^>]*>.*?</script>', '', content, flags=re.DOTALL | re.IGNORECASE)
+content = re.sub(r'<style[^>]*>.*?</style>', '', content, flags=re.DOTALL | re.IGNORECASE)
+
+# Remove HTML tags
+content = re.sub(r'<[^>]+>', ' ', content)
+
+# Decode HTML entities
+content = content.replace('&nbsp;', ' ')
+content = content.replace('&amp;', '&')
+content = content.replace('&lt;', '<')
+content = content.replace('&gt;', '>')
+content = content.replace('&quot;', '"')
+content = content.replace('&#39;', "'")
+
+# Clean up whitespace
+content = re.sub(r'\s+', ' ', content)
+content = content.strip()
+
+if len(content) > $char_limit:
+    content = content[:$char_limit]
+
+data = {"source": "Scrapy Web Scraper", "url": "$url", "content": content}
+with open("$OUTPUT_DIR/data.json", "w") as out:
+    json.dump(data, out, indent=2)
+PYEOF
+                ;;
+        esac
+        
+        echo
+        echo -e "${GREEN}  ✓ Scraping complete!${NC}"
+        echo -e "${CYAN}  Saved: $OUTPUT_DIR/data.json${NC}"
+        
+        if [ "$format_choice" = "2" ]; then
+            echo -e "${CYAN}  Text: $OUTPUT_DIR/scraped_content.txt${NC}"
+        elif [ "$format_choice" = "3" ]; then
+            echo -e "${CYAN}  Markdown: $OUTPUT_DIR/scraped_content.md${NC}"
+        fi
+        
+        echo
+        echo -e "${YELLOW}  Preview (first 500 chars):${NC}"
+        echo "---"
+        python3 << PYEOF
+import json
+try:
+    with open("$OUTPUT_DIR/data.json") as f:
+        d = json.load(f)
+    print(d.get('content', '')[:500])
+except:
+    with open("$OUTPUT_DIR/data.json") as f:
+        print(f.read()[:500])
+PYEOF
+        echo
+        echo "---"
+        
+        # Ask to analyze
+        echo
+        echo -e "${CYAN}  Analyze this content with LLM?${NC}"
+        echo -e "${CYAN}    [1] Yes - analyze for predictions${NC}"
+        echo -e "${CYAN}    [2] No - just save${NC}"
+        echo -ne "${GREEN}  > Choice [1-2]: ${NC}"
+        read -r analyze_choice
+        
+        if [ "$analyze_choice" = "1" ]; then
+            echo -e "${CYAN}  Analyzing with LLM...${NC}"
+            predictive-ling analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
+            
+            if [ -f ~/.predictive-ling/output/analysis.json ]; then
+                cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
+                
+                echo -e "${CYAN}  Generating report...${NC}"
+                predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
+                
+                # Add header
+                {
+                    echo "---"
+                    echo "url: $url"
+                    echo "timestamp: $TIMESTAMP"
+                    echo "source: Scrapy Web Scraper"
+                    echo "format: $format_choice"
+                    echo "---"
+                    echo ""
+                    cat "$OUTPUT_DIR/report.md"
+                } > "$OUTPUT_DIR/report.md.tmp"
+                mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
+                
+                ln -sf "$OUTPUT_DIR" WEBBOT_OUTPUT_DIR/latest
+                
+                echo
+                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo -e "${YELLOW}  R E P O R T                                      ${NC}"
+                echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+                echo
+                cat "$OUTPUT_DIR/report.md"
+            fi
+        fi
+    else
+        echo -e "${RED}  ✗ Failed to fetch URL${NC}"
+    fi
+    
+    echo
+    read -p "  Press Enter to continue..."
+    web_scraper_menu
 }
 
 show_main_menu
