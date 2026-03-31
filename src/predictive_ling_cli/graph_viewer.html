@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebBot Prediction Graph</title>
+    <script src="https://d3js.org/d3.v7.min.js" onload="document.getElementById('status').innerHTML='D3 loaded'"></script>
+    <style>
+        body { margin: 0; background: #0a0a0f; }
+        #controls {
+            position: fixed; top: 20px; left: 20px;
+            background: rgba(20,20,30,0.9); padding: 20px;
+            border-radius: 10px; border: 1px solid #333;
+            max-width: 300px; z-index: 100; color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        #status { color: #666; }
+        h1 { font-size: 18px; margin: 0 0 10px 0; color: #00d4ff; }
+    .legend { display: flex; gap: 10px; margin-bottom: 10px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .zoom-controls { display: flex; gap: 5px; margin-top: 10px; }
+    .zoom-btn { padding: 5px 10px; background: #333; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
+    .zoom-btn:hover { background: #555; }
+</style>
+</head>
+<body>
+<div id="controls">
+    <h1>WebBot Prediction Graph</h1>
+    <div id="status">Loading...</div>
+    <div class="legend">
+        <div><div class="dot" style="background:#ff6b6b"></div> Source</div>
+        <div><div class="dot" style="background:#4ecdc4"></div> Prediction</div>
+        <div><div class="dot" style="background:#ffe66d"></div> Theme</div>
+    </div>
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomIn()">+</button>
+        <button class="zoom-btn" onclick="zoomOut()">-</button>
+        <button class="zoom-btn" onclick="resetZoom()">Reset</button>
+    </div>
+</div>
+
+<script>
+// Default embedded data
+const defaultData = {"nodes": [{"id": "source_analysis.json", "type": "source", "label": "analysis.json", "name": "analysis.json", "year": null}, {"id": "pred_0", "type": "prediction", "label": "March/April 201... (2016)", "pred_type": "future_leak", "indicator": "March/April 2016 Sovereign & Corporate Debt Liquid", "year": 2016, "confidence": 0.87, "keywords": "failures,marchapril,sovereign"}, {"id": "pred_1", "type": "prediction", "label": "State-Level Arm... (?)", "pred_type": "future_leak", "indicator": "State-Level Armed Resistance to Federal Refugee/Bo", "year": null, "confidence": 0.76, "keywords": "armed,federal,statelevel"}, {"id": "pred_2", "type": "prediction", "label": "Crypto-to-Preci... (?)", "pred_type": "future_leak", "indicator": "Crypto-to-Precious Metals Settlement Network Emerg", "year": null, "confidence": 0.82, "keywords": "cryptotoprecious,metals,settlement"}, {"id": "pred_3", "type": "prediction", "label": "Global 'Force W... (?)", "pred_type": "future_leak", "indicator": "Global 'Force Wave' Phenomena & Mass Disappearance", "year": null, "confidence": 0.61, "keywords": "global,force,wave"}, {"id": "pred_4", "type": "prediction", "label": "March/April 201... (2016)", "pred_type": "temporal_anomaly", "indicator": "March/April 2016 Bond/Debt Market Collapse", "year": 2016, "confidence": 0.85, "keywords": "marchapril,debt,bonddebt"}, {"id": "pred_5", "type": "prediction", "label": "2016-2017 Tecto... (2016)", "pred_type": "temporal_anomaly", "indicator": "2016-2017 Tectonic/Earth Expansion Sequence", "year": 2016, "confidence": 0.75, "keywords": "expansion,wave,tectonicearth"}, {"id": "pred_6", "type": "prediction", "label": "2016+ Alternati... (2016)", "pred_type": "temporal_anomaly", "indicator": "2016+ Alternative Media/Citizen Journalist Rise", "year": 2016, "confidence": 0.7, "keywords": "alternative,mediacitizen,journalist"}, {"id": "pred_7", "type": "prediction", "label": "2016 Wave of Un... (2016)", "pred_type": "temporal_anomaly", "indicator": "2016 Wave of Unexplained Disappearances/Phenomena", "year": 2016, "confidence": 0.65, "keywords": "wave,unexplained,disappearancesphenomena"}, {"id": "archetype_Herald", "type": "theme", "label": "Archetype: Herald", "theme_type": "archetype", "name": "Herald", "frequency": 14}, {"id": "archetype_Trickster", "type": "theme", "label": "Archetype: Trickster", "theme_type": "archetype", "name": "Trickster", "frequency": 11}, {"id": "archetype_Warrior", "type": "theme", "label": "Archetype: Warrior", "theme_type": "archetype", "name": "Warrior", "frequency": 16}, {"id": "archetype_Shadow", "type": "theme", "label": "Archetype: Shadow", "theme_type": "archetype", "name": "Shadow", "frequency": 9}, {"id": "archetype_Shapeshifter", "type": "theme", "label": "Archetype: Shapeshifter", "theme_type": "archetype", "name": "Shapeshifter", "frequency": 12}, {"id": "metaphor_Weighing Scales", "type": "theme", "label": "Metaphor: Weighing Scales", "theme_type": "metaphor", "name": "Weighing Scales", "spread": 0.78}, {"id": "metaphor_Dollar Empire Dying", "type": "theme", "label": "Metaphor: Dollar Empire Dying", "theme_type": "metaphor", "name": "Dollar Empire Dying", "spread": 0.92}, {"id": "metaphor_Road of Storms", "type": "theme", "label": "Metaphor: Road of Storms", "theme_type": "metaphor", "name": "Road of Storms", "spread": 0.81}, {"id": "metaphor_Cancer Magnet", "type": "theme", "label": "Metaphor: Cancer Magnet", "theme_type": "metaphor", "name": "Cancer Magnet", "spread": 0.64}, {"id": "metaphor_Strange Attractor / Plop", "type": "theme", "label": "Metaphor: Strange Attractor / Plop", "theme_type": "metaphor", "name": "Strange Attractor / Plop", "spread": 0.88}, {"id": "theme_marchapril", "type": "theme_cluster", "label": "Theme: marchapril", "name": "marchapril", "count": 2}, {"id": "theme_wave", "type": "theme_cluster", "label": "Theme: wave", "name": "wave", "count": 3}], "edges": [{"source": "source_analysis.json", "target": "pred_0", "relationship": "from_source", "weight": 1.0}, {"source": "source_analysis.json", "target": "pred_1", "relationship": "from_source", "weight": 1.0}, {"source": "source_analysis.json", "target": "pred_2", "relationship": "from_source", "weight": 1.0}, {"source": "source_analysis.json", "target": "pred_3", "relationship": "from_source", "weight": 1.0}, {"source": "source_analysis.json", "target": "pred_4", "relationship": "from_source", "weight": 1.0}, {"source": "source_analysis.json", "target": "pred_5", "relationship": "from_source", "weight": 1.0}, {"source": "source_analysis.json", "target": "pred_6", "relationship": "from_source", "weight": 1.0}, {"source": "source_analysis.json", "target": "pred_7", "relationship": "from_source", "weight": 1.0}, {"source": "source_analysis.json", "target": "archetype_Herald", "relationship": "has_archetype", "weight": 1.0}, {"source": "source_analysis.json", "target": "archetype_Trickster", "relationship": "has_archetype", "weight": 1.0}, {"source": "source_analysis.json", "target": "archetype_Warrior", "relationship": "has_archetype", "weight": 1.0}, {"source": "source_analysis.json", "target": "archetype_Shadow", "relationship": "has_archetype", "weight": 1.0}, {"source": "source_analysis.json", "target": "archetype_Shapeshifter", "relationship": "has_archetype", "weight": 1.0}, {"source": "source_analysis.json", "target": "metaphor_Weighing Scales", "relationship": "has_metaphor", "weight": 1.0}, {"source": "source_analysis.json", "target": "metaphor_Dollar Empire Dying", "relationship": "has_metaphor", "weight": 1.0}, {"source": "source_analysis.json", "target": "metaphor_Road of Storms", "relationship": "has_metaphor", "weight": 1.0}, {"source": "source_analysis.json", "target": "metaphor_Cancer Magnet", "relationship": "has_metaphor", "weight": 1.0}, {"source": "source_analysis.json", "target": "metaphor_Strange Attractor / Plop", "relationship": "has_metaphor", "weight": 1.0}, {"source": "pred_0", "target": "pred_4", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_0", "target": "pred_5", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_0", "target": "pred_6", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_0", "target": "pred_7", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_0", "target": "theme_marchapril", "relationship": "has_theme", "weight": 1.0}, {"source": "pred_3", "target": "pred_5", "relationship": "keyword_similarity", "weight": 0.2}, {"source": "pred_3", "target": "pred_7", "relationship": "keyword_similarity", "weight": 0.2}, {"source": "pred_3", "target": "theme_wave", "relationship": "has_theme", "weight": 1.0}, {"source": "pred_4", "target": "pred_5", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_4", "target": "pred_6", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_4", "target": "pred_7", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_4", "target": "theme_marchapril", "relationship": "has_theme", "weight": 1.0}, {"source": "pred_5", "target": "pred_6", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_5", "target": "pred_7", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_5", "target": "theme_wave", "relationship": "has_theme", "weight": 1.0}, {"source": "pred_6", "target": "pred_7", "relationship": "temporal_proximity", "weight": 1.0}, {"source": "pred_7", "target": "theme_wave", "relationship": "has_theme", "weight": 1.0}]};
+
+// Try to load from URL param, fallback to embedded
+let graphData = defaultData;
+const urlParams = new URLSearchParams(window.location.search);
+const fileParam = urlParams.get('file');
+
+if (fileParam) {
+    fetch(fileParam)
+        .then(res => res.json())
+        .then(data => { graphData = data; initGraph(); })
+        .catch(() => { initGraph(); });
+} else {
+    initGraph();
+}
+
+function initGraph() {
+
+const colors = {
+    "source": "#ff6b6b",
+    "prediction": "#4ecdc4",
+    "theme": "#ffe66d",
+    "theme_cluster": "#95e1d3"
+};
+
+const nodes = graphData.nodes.map(n => ({...n}));
+const links = graphData.edges.map(e => ({...e}));
+
+const svg = d3.select("body").append("svg")
+    .attr("width", window.innerWidth)
+    .attr("height", window.innerHeight);
+
+const g = svg.append("g");
+
+let currentZoom = 1;
+const zoom = d3.zoom()
+    .scaleExtent([0.1, 10])
+    .on("zoom", (event) => {
+        currentZoom = event.transform.k;
+        g.attr("transform", event.transform);
+    });
+svg.call(zoom);
+
+function zoomIn() { svg.transition().call(zoom.scaleBy, 1.3); }
+function zoomOut() { svg.transition().call(zoom.scaleBy, 0.7); }
+function resetZoom() { svg.transition().call(zoom.transform, d3.zoomIdentity); }
+
+const sim = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(80))
+    .force("charge", d3.forceManyBody().strength(-300))
+    .force("center", d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2));
+
+g.selectAll("line")
+    .data(links).join("line")
+    .attr("stroke", "#444")
+    .attr("stroke-width", d => Math.min(d.weight || 1, 2));
+
+g.selectAll("circle")
+    .data(nodes).join("circle")
+    .attr("r", d => d.type === 'source' ? 15 : d.type === 'prediction' ? 10 : 6)
+    .attr("fill", d => colors[d.type] || "#666")
+    .call(d3.drag()
+        .on("start", e => { if (!e.active) sim.alphaTarget(0.3).restart(); e.subject.fx = e.subject.x; e.subject.fy = e.subject.y; })
+        .on("drag", e => { e.subject.fx = e.x; e.subject.fy = e.y; })
+        .on("end", e => { if (!e.active) sim.alphaTarget(0); e.subject.fx = null; e.subject.fy = null; }));
+
+g.selectAll("text")
+    .data(nodes).join("text")
+    .text(d => d.label ? d.label.substring(0, 15) : d.id.substring(0, 10))
+    .attr("font-family", "Helvetica, Arial, sans-serif")
+    .attr("font-size", d => d.type === 'source' ? 12 : 9)
+    .attr("fill", "#fff")
+    .attr("text-anchor", "middle")
+    .attr("dy", d => d.type === 'source' ? 25 : 18);
+
+sim.on("tick", () => {
+    g.selectAll("line")
+        .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+    g.selectAll("circle")
+        .attr("cx", d => d.x).attr("cy", d => d.y);
+    g.selectAll("text")
+        .attr("x", d => d.x).attr("y", d => d.y);
+});
+
+document.getElementById('status').innerHTML = 'Graph loaded: ' + nodes.length + ' nodes, ' + links.length + ' edges';
+}
+</script>
+</body>
+</html>

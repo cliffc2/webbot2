@@ -1,0 +1,123 @@
+{
+  "temporal_anomalies": [
+    {
+      "text": "By 2030, the old systems will have collapsed completely...",
+      "future_reference": "2030",
+      "confidence": 0.72,
+      "platform": "twitter",
+      "match_type": "future_year"
+    }
+  ],
+  "memetic_lifecycle": [
+    {
+      "pattern": "AI consciousness awakening",
+      "stage": 2,
+      "stage_name": "Excitement",
+      "evidence": "Rapid viral spread, memes about AI 'waking up', exponential engagement"
+    },
+    {
+      "pattern": "Economic reset narrative",
+      "stage": 3,
+      "stage_name": "Momentum",
+      "evidence": "Mainstream media coverage, podcast discussions, increasing normalization"
+    }
+  ],
+  "archetypes": [
+    {
+      "name": "The Herald",
+      "frequency": 28,
+      "examples": [
+        "Posts claiming 'something big is coming'",
+        "References to 'the shift'"
+      ]
+    },
+    {
+      "name": "The Catalyst",
+      "frequency": 19,
+      "examples": [
+        "AI as the trigger for change",
+        "Technology as disruptor"
+      ]
+    },
+    {
+      "name": "The Shadow",
+      "frequency": 15,
+      "examples": [
+        "Suppressed truths about tech elites",
+        "Hidden agenda discussions"
+      ]
+    }
+  ],
+  "metaphors": [
+    {
+      "term": "digital awakening",
+      "context": "AI consciousness discussions",
+      "spread_score": 0.78,
+      "is_emerging": true
+    },
+    {
+      "term": "economic reset",
+      "context": "Financial system metaphors",
+      "spread_score": 0.65,
+      "is_emerging": false
+    },
+    {
+      "term": "the great unraveling",
+      "context": "Social collapse narrative",
+      "spread_score": 0.58,
+      "is_emerging": true
+    }
+  ],
+  "contradictions": [
+    {
+      "narrative": "AI will solve all problems",
+      "counter_narrative": "AI poses existential risk",
+      "tension_level": "high"
+    },
+    {
+      "narrative": "Decentralization is the future",
+      "counter_narrative": "Centralized control increasing",
+      "tension_level": "medium"
+    }
+  ],
+  "future_leaks": [
+    {
+      "indicator": "Increased discussion of UBI in mainstream",
+      "confidence": 0.75,
+      "timeline": "6-12 months",
+      "supporting_evidence": [
+        "Multiple platform spikes",
+        "Mainstream media mentions increasing"
+      ]
+    },
+    {
+      "indicator": "Major tech regulation announcement",
+      "confidence": 0.68,
+      "timeline": "3-6 months",
+      "supporting_evidence": [
+        "Political discourse ramping up",
+        "EU/US policy discussions"
+      ]
+    }
+  ],
+  "cross_platform_patterns": [
+    {
+      "pattern": "AI rights movement",
+      "platforms": [
+        "twitter",
+        "reddit",
+        "youtube"
+      ],
+      "synchronization": "synchronized"
+    },
+    {
+      "pattern": "digital identity crisis",
+      "platforms": [
+        "reddit",
+        "twitter"
+      ],
+      "synchronization": "emerging"
+    }
+  ],
+  "summary": "Analysis detected high excitement stage memetic patterns around AI consciousness. Temporal anomalies indicate strong future-displacement language. The Herald archetype is prominent, signaling perceived upcoming changes. Cross-platform synchronization suggests these patterns are converging across all monitored sources."
+}
