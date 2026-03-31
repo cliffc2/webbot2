@@ -1,28 +1,3 @@
-Metadata-Version: 2.4
-Name: webbot2-cli
-<<<<<<< HEAD
-Version: 0.2.0
-Summary: WebBot 2.0 - Predictive Linguistics CLI
-=======
-Version: 0.3.0
-Summary: WebBot 2.0 CLI - Predictive Linguistics Analysis Tool
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
-Requires-Python: >=3.10
-Description-Content-Type: text/markdown
-Requires-Dist: click>=8.1.0
-Requires-Dist: httpx>=0.24.0
-Requires-Dist: python-dotenv>=1.0.0
-Requires-Dist: tiktoken>=0.5.0
-Requires-Dist: gtts>=2.4.0
-Requires-Dist: beautifulsoup4>=4.12
-Requires-Dist: lxml>=5.0
-Provides-Extra: dev
-Requires-Dist: pytest>=7.0.0; extra == "dev"
-Requires-Dist: ruff>=0.1.0; extra == "dev"
-Requires-Dist: mypy>=1.0.0; extra == "dev"
-<<<<<<< HEAD
-=======
-
 # WebBot 2.0 CLI
 
 ![webbot2 preview](webbot2.png)
@@ -172,4 +147,3 @@ Results saved to `~/.webbot2/output/`:
 ## License
 
 MIT - Based on original WebBot methodology by clif high
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00

@@ -35,102 +35,102 @@ class MarkdownReporter:
 
         # Build header
         lines = []
-        lines.append("=" * 78)
+        lines.append("═" * 78)
         lines.append(f"  REPORT: {report_id}_{search_term.lower().replace(' ', '_')}")
-        lines.append("=" * 78)
+        lines.append("═" * 78)
         lines.append("")
         lines.append(f"  search: {search_term}")
         lines.append(f"  limit: {limit}")
         lines.append(f"  timestamp: {report_id}")
         lines.append(f"  platform: {platform}")
         lines.append("")
-        lines.append("=" * 78)
+        lines.append("═" * 78)
         lines.append("  PREDICTIVE LINGUISTICS REPORT - WEBBOT 2.0")
-        lines.append("=" * 78)
+        lines.append("═" * 78)
         lines.append(f"Generated: {ts}")
         lines.append("")
 
         # Summary section
         summary = data.get("summary", "No summary available.")
-        lines.append("-" * 78)
+        lines.append("─" * 78)
         lines.append("SUMMARY")
-        lines.append("-" * 78)
-        lines.extend(self._wrap_text(summary, 76))
+        lines.append("─" * 78)
+        lines.append(self._wrap_text(summary, 76))
         lines.append("")
 
         # Temporal Anomalies
         temporal_anomalies = data.get("temporal_anomalies", [])
         if temporal_anomalies:
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.append("TEMPORAL ANOMALIES (Time-Displacement)")
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.extend(self._format_anomalies_by_confidence(temporal_anomalies))
             lines.append("")
 
         # Temporal Echoes
         temporal_echoes = data.get("temporal_echoes", [])
         if temporal_echoes:
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.append("TEMPORAL ECHOES")
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.extend(self._format_temporal_echoes(temporal_echoes))
             lines.append("")
 
         # Memetic Lifecycle
         memetic_lifecycle = data.get("memetic_lifecycle", [])
         if memetic_lifecycle:
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.append("MEMETIC LIFECYCLE ANALYSIS")
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.extend(self._format_memetic_lifecycle(memetic_lifecycle))
             lines.append("")
 
         # Archetypes
         archetypes = data.get("archetypes", [])
         if archetypes:
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.append("ARCHETYPES (Jungian)")
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.extend(self._format_archetypes(archetypes))
             lines.append("")
 
         # Entities
         entities = data.get("entities", [])
         if entities:
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.append("ENTITIES DETECTED")
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.extend(self._format_entities(entities))
             lines.append("")
 
         # Timeframes
         timeframes = data.get("timeframes", [])
         if timeframes:
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.append("PREDICTION TIMEFRAMES")
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.extend(self._format_timeframes(timeframes))
             lines.append("")
 
         # Detail Words
         detail_words = data.get("detail_words", [])
         if detail_words:
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.append("DETAIL WORDS (Unusual Context)")
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.extend(self._format_detail_words(detail_words))
             lines.append("")
 
         # Future Leaks
         future_leaks = data.get("future_leaks", [])
         if future_leaks:
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.append("FUTURE LEAK INDICATORS")
-            lines.append("-" * 78)
+            lines.append("─" * 78)
             lines.extend(self._format_future_leaks(future_leaks))
             lines.append("")
 
-        lines.append("=" * 78)
+        lines.append("═" * 78)
         return "\n".join(lines)
 
     def _wrap_text(self, text: str, width: int = 76) -> List[str]:
@@ -159,32 +159,32 @@ class MarkdownReporter:
             lines.append("🔴 HIGH CONFIDENCE (>0.80)")
             for a in high_conf:
                 lines.append(
-                    f"  |-- {a.get('future_reference', 'N/A')} (conf: {a.get('confidence', 0):.2f})"
+                    f"  │── {a.get('future_reference', 'N/A')} (conf: {a.get('confidence', 0):.2f})"
                 )
                 lines.append(
-                    f"  |    Source: {a.get('platform', 'unknown')} | {a.get('text', '')[:50]}..."
+                    f"  │    Source: {a.get('platform', 'unknown')} | {a.get('text', '')[:50]}..."
                 )
-                lines.append("  |")
+                lines.append("  │")
 
         if med_conf:
             lines.append("🟡 MEDIUM CONFIDENCE (0.60-0.80)")
             for a in med_conf:
                 lines.append(
-                    f"  |-- {a.get('future_reference', 'N/A')} (conf: {a.get('confidence', 0):.2f})"
+                    f"  │── {a.get('future_reference', 'N/A')} (conf: {a.get('confidence', 0):.2f})"
                 )
                 lines.append(
-                    f"  |    Source: {a.get('platform', 'unknown')} | {a.get('text', '')[:50]}..."
+                    f"  │    Source: {a.get('platform', 'unknown')} | {a.get('text', '')[:50]}..."
                 )
-                lines.append("  |")
+                lines.append("  │")
 
         if low_conf:
             lines.append("🟢 LOW CONFIDENCE (<0.60)")
             for a in low_conf:
                 lines.append(
-                    f"  |-- {a.get('future_reference', 'N/A')} (conf: {a.get('confidence', 0):.2f})"
+                    f"  │── {a.get('future_reference', 'N/A')} (conf: {a.get('confidence', 0):.2f})"
                 )
-                lines.append(f"  |    Source: {a.get('platform', 'unknown')}")
-                lines.append("  |")
+                lines.append(f"  │    Source: {a.get('platform', 'unknown')}")
+                lines.append("  │")
 
         return lines
 

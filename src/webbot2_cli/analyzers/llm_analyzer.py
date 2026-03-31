@@ -9,8 +9,14 @@ import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
+<<<<<<< HEAD
 load_dotenv(".env")
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+=======
+load_dotenv(os.path.expanduser("~/.webbot2.env"))
+load_dotenv(os.path.expanduser("~/webbot2/.env"))
+load_dotenv(".env")
+>>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
 
 from .temporal_detector import detect_temporal_anomalies
 from webbot2_cli.utils import increment_counter
@@ -111,8 +117,13 @@ class LLMAnalyzer:
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
+<<<<<<< HEAD
                     "HTTP-Referer": "https://predictive-ling-cli",
                     "X-Title": "Predictive Linguistics CLI",
+=======
+                    "HTTP-Referer": "https://webbot2-cli",
+                    "X-Title": "WebBot 2.0 CLI",
+>>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
                 },
                 json={
                     "model": model,

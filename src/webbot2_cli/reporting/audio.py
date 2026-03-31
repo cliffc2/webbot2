@@ -17,8 +17,12 @@ class AudioReporter:
     """Generate audio reports using TTS."""
 
     def __init__(self):
+<<<<<<< HEAD
         script_dir = Path(__file__).parent.parent.parent
         self.output_dir = script_dir / "output"
+=======
+        self.output_dir = Path.home() / ".webbot2" / "output"
+>>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def generate(

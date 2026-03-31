@@ -1,4 +1,4 @@
-"""CLI entry point for Predictive Linguistics CLI."""
+"""CLI entry point for WebBot 2.0 CLI."""
 
 import json
 import os
@@ -9,8 +9,9 @@ import click
 from dotenv import load_dotenv
 
 load_dotenv()
+load_dotenv(os.path.expanduser("~/.webbot2.env"))
+load_dotenv(os.path.expanduser("~/webbot2/.env"))
 load_dotenv(".env")
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 from webbot2_cli.scrapers.twitter import TwitterScraper
 from webbot2_cli.scrapers.reddit import RedditScraper
@@ -25,10 +26,9 @@ from webbot2_cli.utils import print_summary, reset_counts
 
 def get_output_dir() -> Path:
     """Get or create the output directory."""
-    home = Path.home()
-    webbot_dir = home / ".webbot2" / "output"
-    webbot_dir.mkdir(parents=True, exist_ok=True)
-    return webbot_dir
+    output_dir = Path.home() / ".webbot2" / "output"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
 
 
 @click.group()

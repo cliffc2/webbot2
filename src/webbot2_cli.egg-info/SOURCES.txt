@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+README.md
+>>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
 pyproject.toml
 src/webbot2_cli/__init__.py
 src/webbot2_cli/cli.py
@@ -18,10 +22,16 @@ src/webbot2_cli/reporting/audio.py
 src/webbot2_cli/reporting/json_output.py
 src/webbot2_cli/reporting/markdown.py
 src/webbot2_cli/scrapers/__init__.py
+<<<<<<< HEAD
 src/webbot2_cli/scrapers/myallies.py
 src/webbot2_cli/scrapers/news.py
 src/webbot2_cli/scrapers/reddit.py
 src/webbot2_cli/scrapers/twitter.py
 src/webbot2_cli/scrapers/web_scraper.py
 src/webbot2_cli/scrapers/webhook.py
+=======
+src/webbot2_cli/scrapers/news.py
+src/webbot2_cli/scrapers/reddit.py
+src/webbot2_cli/scrapers/twitter.py
+>>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
 src/webbot2_cli/scrapers/youtube.py

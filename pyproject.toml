@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "webbot2-cli"
-version = "0.2.0"
-description = "WebBot 2.0 - Predictive Linguistics CLI"
+version = "0.3.0"
+description = "WebBot 2.0 CLI - Predictive Linguistics Analysis Tool"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
