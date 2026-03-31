@@ -24,11 +24,11 @@ from webbot2_cli.utils import print_summary, reset_counts
 
 
 def get_output_dir() -> Path:
-    """Get or create the output directory (relative to this file)."""
-    script_dir = Path(__file__).parent.parent
-    output_dir = script_dir / "output"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir
+    """Get or create the output directory."""
+    home = Path.home()
+    webbot_dir = home / ".webbot2" / "output"
+    webbot_dir.mkdir(parents=True, exist_ok=True)
+    return webbot_dir
 
 
 @click.group()
