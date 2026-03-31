@@ -1,0 +1,397 @@
+{
+  "nodes": [
+    {
+      "id": "source_analysis.json",
+      "type": "source",
+      "label": "analysis.json",
+      "name": "analysis.json",
+      "year": null
+    },
+    {
+      "id": "pred_0",
+      "type": "prediction",
+      "label": "March/April 201... (2016)",
+      "pred_type": "future_leak",
+      "indicator": "March/April 2016 Sovereign & Corporate Debt Liquid",
+      "year": 2016,
+      "confidence": 0.87,
+      "keywords": "failures,marchapril,sovereign"
+    },
+    {
+      "id": "pred_1",
+      "type": "prediction",
+      "label": "State-Level Arm... (?)",
+      "pred_type": "future_leak",
+      "indicator": "State-Level Armed Resistance to Federal Refugee/Bo",
+      "year": null,
+      "confidence": 0.76,
+      "keywords": "armed,federal,statelevel"
+    },
+    {
+      "id": "pred_2",
+      "type": "prediction",
+      "label": "Crypto-to-Preci... (?)",
+      "pred_type": "future_leak",
+      "indicator": "Crypto-to-Precious Metals Settlement Network Emerg",
+      "year": null,
+      "confidence": 0.82,
+      "keywords": "cryptotoprecious,metals,settlement"
+    },
+    {
+      "id": "pred_3",
+      "type": "prediction",
+      "label": "Global 'Force W... (?)",
+      "pred_type": "future_leak",
+      "indicator": "Global 'Force Wave' Phenomena & Mass Disappearance",
+      "year": null,
+      "confidence": 0.61,
+      "keywords": "global,force,wave"
+    },
+    {
+      "id": "pred_4",
+      "type": "prediction",
+      "label": "March/April 201... (2016)",
+      "pred_type": "temporal_anomaly",
+      "indicator": "March/April 2016 Bond/Debt Market Collapse",
+      "year": 2016,
+      "confidence": 0.85,
+      "keywords": "marchapril,debt,bonddebt"
+    },
+    {
+      "id": "pred_5",
+      "type": "prediction",
+      "label": "2016-2017 Tecto... (2016)",
+      "pred_type": "temporal_anomaly",
+      "indicator": "2016-2017 Tectonic/Earth Expansion Sequence",
+      "year": 2016,
+      "confidence": 0.75,
+      "keywords": "expansion,wave,tectonicearth"
+    },
+    {
+      "id": "pred_6",
+      "type": "prediction",
+      "label": "2016+ Alternati... (2016)",
+      "pred_type": "temporal_anomaly",
+      "indicator": "2016+ Alternative Media/Citizen Journalist Rise",
+      "year": 2016,
+      "confidence": 0.7,
+      "keywords": "alternative,mediacitizen,journalist"
+    },
+    {
+      "id": "pred_7",
+      "type": "prediction",
+      "label": "2016 Wave of Un... (2016)",
+      "pred_type": "temporal_anomaly",
+      "indicator": "2016 Wave of Unexplained Disappearances/Phenomena",
+      "year": 2016,
+      "confidence": 0.65,
+      "keywords": "wave,unexplained,disappearancesphenomena"
+    },
+    {
+      "id": "archetype_Herald",
+      "type": "theme",
+      "label": "Archetype: Herald",
+      "theme_type": "archetype",
+      "name": "Herald",
+      "frequency": 14
+    },
+    {
+      "id": "archetype_Trickster",
+      "type": "theme",
+      "label": "Archetype: Trickster",
+      "theme_type": "archetype",
+      "name": "Trickster",
+      "frequency": 11
+    },
+    {
+      "id": "archetype_Warrior",
+      "type": "theme",
+      "label": "Archetype: Warrior",
+      "theme_type": "archetype",
+      "name": "Warrior",
+      "frequency": 16
+    },
+    {
+      "id": "archetype_Shadow",
+      "type": "theme",
+      "label": "Archetype: Shadow",
+      "theme_type": "archetype",
+      "name": "Shadow",
+      "frequency": 9
+    },
+    {
+      "id": "archetype_Shapeshifter",
+      "type": "theme",
+      "label": "Archetype: Shapeshifter",
+      "theme_type": "archetype",
+      "name": "Shapeshifter",
+      "frequency": 12
+    },
+    {
+      "id": "metaphor_Weighing Scales",
+      "type": "theme",
+      "label": "Metaphor: Weighing Scales",
+      "theme_type": "metaphor",
+      "name": "Weighing Scales",
+      "spread": 0.78
+    },
+    {
+      "id": "metaphor_Dollar Empire Dying",
+      "type": "theme",
+      "label": "Metaphor: Dollar Empire Dying",
+      "theme_type": "metaphor",
+      "name": "Dollar Empire Dying",
+      "spread": 0.92
+    },
+    {
+      "id": "metaphor_Road of Storms",
+      "type": "theme",
+      "label": "Metaphor: Road of Storms",
+      "theme_type": "metaphor",
+      "name": "Road of Storms",
+      "spread": 0.81
+    },
+    {
+      "id": "metaphor_Cancer Magnet",
+      "type": "theme",
+      "label": "Metaphor: Cancer Magnet",
+      "theme_type": "metaphor",
+      "name": "Cancer Magnet",
+      "spread": 0.64
+    },
+    {
+      "id": "metaphor_Strange Attractor / Plop",
+      "type": "theme",
+      "label": "Metaphor: Strange Attractor / Plop",
+      "theme_type": "metaphor",
+      "name": "Strange Attractor / Plop",
+      "spread": 0.88
+    },
+    {
+      "id": "theme_marchapril",
+      "type": "theme_cluster",
+      "label": "Theme: marchapril",
+      "name": "marchapril",
+      "count": 2
+    },
+    {
+      "id": "theme_wave",
+      "type": "theme_cluster",
+      "label": "Theme: wave",
+      "name": "wave",
+      "count": 3
+    }
+  ],
+  "edges": [
+    {
+      "source": "source_analysis.json",
+      "target": "pred_0",
+      "relationship": "from_source",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "pred_1",
+      "relationship": "from_source",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "pred_2",
+      "relationship": "from_source",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "pred_3",
+      "relationship": "from_source",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "pred_4",
+      "relationship": "from_source",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "pred_5",
+      "relationship": "from_source",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "pred_6",
+      "relationship": "from_source",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "pred_7",
+      "relationship": "from_source",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "archetype_Herald",
+      "relationship": "has_archetype",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "archetype_Trickster",
+      "relationship": "has_archetype",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "archetype_Warrior",
+      "relationship": "has_archetype",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "archetype_Shadow",
+      "relationship": "has_archetype",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "archetype_Shapeshifter",
+      "relationship": "has_archetype",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "metaphor_Weighing Scales",
+      "relationship": "has_metaphor",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "metaphor_Dollar Empire Dying",
+      "relationship": "has_metaphor",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "metaphor_Road of Storms",
+      "relationship": "has_metaphor",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "metaphor_Cancer Magnet",
+      "relationship": "has_metaphor",
+      "weight": 1.0
+    },
+    {
+      "source": "source_analysis.json",
+      "target": "metaphor_Strange Attractor / Plop",
+      "relationship": "has_metaphor",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_0",
+      "target": "pred_4",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_0",
+      "target": "pred_5",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_0",
+      "target": "pred_6",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_0",
+      "target": "pred_7",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_0",
+      "target": "theme_marchapril",
+      "relationship": "has_theme",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_3",
+      "target": "pred_5",
+      "relationship": "keyword_similarity",
+      "weight": 0.2
+    },
+    {
+      "source": "pred_3",
+      "target": "pred_7",
+      "relationship": "keyword_similarity",
+      "weight": 0.2
+    },
+    {
+      "source": "pred_3",
+      "target": "theme_wave",
+      "relationship": "has_theme",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_4",
+      "target": "pred_5",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_4",
+      "target": "pred_6",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_4",
+      "target": "pred_7",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_4",
+      "target": "theme_marchapril",
+      "relationship": "has_theme",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_5",
+      "target": "pred_6",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_5",
+      "target": "pred_7",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_5",
+      "target": "theme_wave",
+      "relationship": "has_theme",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_6",
+      "target": "pred_7",
+      "relationship": "temporal_proximity",
+      "weight": 1.0
+    },
+    {
+      "source": "pred_7",
+      "target": "theme_wave",
+      "relationship": "has_theme",
+      "weight": 1.0
+    }
+  ]
+}

@@ -95,7 +95,7 @@ quick_analysis() {
     # Sanitize query for folder name
     query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -dc 'a-z0-9_' | cut -c1-15)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.predictive-ling/output/${TIMESTAMP}_${query_slug}
+    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_${query_slug}
     mkdir -p "$OUTPUT_DIR"
     
     echo
@@ -105,10 +105,10 @@ quick_analysis() {
     
     # Scrape News (Currents API) - save to timestamped dir
     echo -e "${CYAN}  [1/3] Scraping News (Currents API)...${NC}"
-    predictive-ling scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
+    webbot2 scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
     
     # Get latest file and copy to timestamped dir
-    news_file=$(ls -t ~/.predictive-ling/output/news_*.json 2>/dev/null | head -1)
+    news_file=$(ls -t ~/.webbot2/output/news_*.json 2>/dev/null | head -1)
     cp "$news_file" "$OUTPUT_DIR/data.json" 2>/dev/null
     
     # Check for mock data
@@ -120,11 +120,11 @@ quick_analysis() {
     if [ -n "$news_file" ] && [ -f "$news_file" ]; then
         echo -e "${CYAN}  [2/3] Analyzing with LLM...${NC}"
         cp "$news_file" /tmp/analyze_input.json
-        predictive-ling analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
+        webbot2 analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
         
         # Copy analysis to timestamped dir
-        if [ -f ~/.predictive-ling/output/analysis.json ]; then
-            cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
+        if [ -f ~/.webbot2/output/analysis.json ]; then
+            cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
         fi
         
         echo -e "${CYAN}  [3/3] Generating report...${NC}"
@@ -134,7 +134,7 @@ quick_analysis() {
         
         if [ -f "$OUTPUT_DIR/analysis.json" ]; then
             # Generate report with header info
-            predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
+            webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
             
             # Add header to report
             {
@@ -154,12 +154,12 @@ quick_analysis() {
     fi
     
     # Update latest symlink
-    ln -sf "$OUTPUT_DIR" ~/.predictive-ling/output/latest
+    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
     
     echo
     echo -e "${GREEN}  ✓ Quick analysis complete!${NC}"
     echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
-    echo -e "${CYAN}  Latest: ~/.predictive-ling/output/latest${NC}"
+    echo -e "${CYAN}  Latest: ~/.webbot2/output/latest${NC}"
     echo
     
     # Show the report
@@ -197,7 +197,7 @@ newsapi_analysis() {
     # Sanitize query for folder name
     query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -dc 'a-z0-9_' | cut -c1-15)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.predictive-ling/output/${TIMESTAMP}_${query_slug}_newsapi
+    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_${query_slug}_newsapi
     mkdir -p "$OUTPUT_DIR"
     
     echo
@@ -207,10 +207,10 @@ newsapi_analysis() {
     
     # Scrape News (NewsAPI) - save to timestamped dir
     echo -e "${CYAN}  [1/3] Scraping News (NewsAPI)...${NC}"
-    predictive-ling scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
+    webbot2 scrape news --query "$query" --limit "$limit" 2>&1 | tail -3
     
     # Get latest file and copy to timestamped dir
-    news_file=$(ls -t ~/.predictive-ling/output/news_*.json 2>/dev/null | head -1)
+    news_file=$(ls -t ~/.webbot2/output/news_*.json 2>/dev/null | head -1)
     cp "$news_file" "$OUTPUT_DIR/data.json" 2>/dev/null
     
     # Check for mock data
@@ -222,11 +222,11 @@ newsapi_analysis() {
     if [ -n "$news_file" ] && [ -f "$news_file" ]; then
         echo -e "${CYAN}  [2/3] Analyzing with LLM...${NC}"
         cp "$news_file" /tmp/analyze_input.json
-        predictive-ling analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
+        webbot2 analyze llm /tmp/analyze_input.json --prompt-type webbot 2>&1 | tail -10
         
         # Copy analysis to timestamped dir
-        if [ -f ~/.predictive-ling/output/analysis.json ]; then
-            cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
+        if [ -f ~/.webbot2/output/analysis.json ]; then
+            cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
         fi
         
         echo -e "${CYAN}  [3/3] Generating report...${NC}"
@@ -236,7 +236,7 @@ newsapi_analysis() {
         
         if [ -f "$OUTPUT_DIR/analysis.json" ]; then
             # Generate report with header info
-            predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
+            webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -5
             
             # Add header to report
             {
@@ -256,12 +256,12 @@ newsapi_analysis() {
     fi
     
     # Update latest symlink
-    ln -sf "$OUTPUT_DIR" ~/.predictive-ling/output/latest
+    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
     
     echo
     echo -e "${GREEN}  ✓ NewsAPI analysis complete!${NC}"
     echo -e "${CYAN}  Folder: $OUTPUT_DIR${NC}"
-    echo -e "${CYAN}  Latest: ~/.predictive-ling/output/latest${NC}"
+    echo -e "${CYAN}  Latest: ~/.webbot2/output/latest${NC}"
     echo
     
     # Show the report
@@ -314,7 +314,7 @@ run_and_display() {
     
     query_slug=$(echo "$query" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -dc 'a-z0-9_' | cut -c1-15)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.predictive-ling/output/${TIMESTAMP}_${query_slug}
+    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_${query_slug}
     mkdir -p "$OUTPUT_DIR"
     
     echo
@@ -322,15 +322,15 @@ run_and_display() {
     
     case $platforms in
         "Reddit")
-            predictive-ling scrape reddit --subreddit all --query "$query" --limit "$limit"
-            data_file=$(ls -t ~/.predictive-ling/output/reddit_*.json 2>/dev/null | head -1)
+            webbot2 scrape reddit --subreddit all --query "$query" --limit "$limit"
+            data_file=$(ls -t ~/.webbot2/output/reddit_*.json 2>/dev/null | head -1)
             cp "$data_file" "$OUTPUT_DIR/data.json" 2>/dev/null
             ;;
         "Reddit + News")
-            predictive-ling scrape reddit --subreddit all --query "$query" --limit "$limit"
-            predictive-ling scrape news --query "$query" --limit "$limit"
-            reddit_file=$(ls -t ~/.predictive-ling/output/reddit_*.json 2>/dev/null | head -1)
-            news_file=$(ls -t ~/.predictive-ling/output/news_*.json 2>/dev/null | head -1)
+            webbot2 scrape reddit --subreddit all --query "$query" --limit "$limit"
+            webbot2 scrape news --query "$query" --limit "$limit"
+            reddit_file=$(ls -t ~/.webbot2/output/reddit_*.json 2>/dev/null | head -1)
+            news_file=$(ls -t ~/.webbot2/output/news_*.json 2>/dev/null | head -1)
             if [ -n "$reddit_file" ]; then
                 cp "$reddit_file" "$OUTPUT_DIR/data.json"
                 [ -n "$news_file" ] && python3 -c "
@@ -343,8 +343,8 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
             data_file="$OUTPUT_DIR/data.json"
             ;;
         "All Platforms")
-            predictive-ling run-all --query "$query" --limit "$limit" 2>&1 | tail -10
-            data_file=$(ls -t ~/.predictive-ling/output/analysis.json 2>/dev/null | head -1)
+            webbot2 run-all --query "$query" --limit "$limit" 2>&1 | tail -10
+            data_file=$(ls -t ~/.webbot2/output/analysis.json 2>/dev/null | head -1)
             ;;
     esac
     
@@ -360,17 +360,17 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
     fi
     
     echo -e "${CYAN}  [2/3] Analyzing with LLM (WebBot 2.0)...${NC}"
-    predictive-ling analyze llm "$data_file" --prompt-type webbot 2>&1 | tail -10
+    webbot2 analyze llm "$data_file" --prompt-type webbot 2>&1 | tail -10
     
-    if [ ! -f ~/.predictive-ling/output/analysis.json ]; then
+    if [ ! -f ~/.webbot2/output/analysis.json ]; then
         echo -e "${RED}  ✗ Analysis failed${NC}"
         return 1
     fi
     
-    cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
+    cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
     
     echo -e "${CYAN}  [3/3] Generating report...${NC}"
-    predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
+    webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
     
     # Add header
     {
@@ -385,7 +385,7 @@ with open('$OUTPUT_DIR/data.json', 'w') as f: json.dump({'reddit': rd, 'news': n
     } > "$OUTPUT_DIR/report.md.tmp"
     mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
     
-    ln -sf "$OUTPUT_DIR" ~/.predictive-ling/output/latest
+    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
     
     echo
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
@@ -478,7 +478,7 @@ scrape_data() {
     case $platform in
         1)
             echo -e "${GREEN}  Scraping Twitter...${NC}"
-            predictive-ling scrape twitter --query "$query" --limit "$limit"
+            webbot2 scrape twitter --query "$query" --limit "$limit"
             ;;
         2)
             echo -e "${CYAN}  Subreddit [default: all]${NC}"
@@ -486,15 +486,15 @@ scrape_data() {
             read -r subreddit
             subreddit=${subreddit:-all}
             echo -e "${GREEN}  Scraping Reddit...${NC}"
-            predictive-ling scrape reddit --subreddit "$subreddit" --query "$query" --limit "$limit"
+            webbot2 scrape reddit --subreddit "$subreddit" --query "$query" --limit "$limit"
             ;;
         3)
             echo -e "${GREEN}  Scraping YouTube...${NC}"
-            predictive-ling scrape youtube --query "$query" --limit "$limit"
+            webbot2 scrape youtube --query "$query" --limit "$limit"
             ;;
         4)
             echo -e "${GREEN}  Running full pipeline...${NC}"
-            predictive-ling run-all --query "$query" --limit "$limit" 2>&1 | head -30
+            webbot2 run-all --query "$query" --limit "$limit" 2>&1 | head -30
             ;;
     esac
     
@@ -562,7 +562,7 @@ analyze_data() {
     echo
     echo -e "${CYAN}  Available data files:${NC}"
     
-    json_files=$(ls -t ~/.predictive-ling/output/*.json 2>/dev/null)
+    json_files=$(ls -t ~/.webbot2/output/*.json 2>/dev/null)
     total_files=$(echo "$json_files" | wc -l | tr -d ' ')
     
     if [ "$total_files" -gt 0 ] 2>/dev/null; then
@@ -598,7 +598,7 @@ analyze_data() {
     fi
     
     if [ -n "$input_file" ] && [ -f "$input_file" ]; then
-        predictive-ling analyze llm "$input_file" --prompt-type "$prompt_type" 2>&1
+        webbot2 analyze llm "$input_file" --prompt-type "$prompt_type" 2>&1
     else
         echo -e "${RED}  ✗ No valid input file found. Run scrape first.${NC}"
     fi
@@ -643,7 +643,7 @@ generate_reports() {
     echo -e "${CYAN}  │${NC}  Available analysis files:                            ${CYAN}│${NC}"
     echo -e "${CYAN}  │${NC}                                                         ${CYAN}│${NC}"
     
-    analysis_files=$(ls -t ~/.predictive-ling/output/analysis*.json 2>/dev/null)
+    analysis_files=$(ls -t ~/.webbot2/output/analysis*.json 2>/dev/null)
     total_afiles=$(echo "$analysis_files" | wc -l | tr -d ' ')
     
     if [ "$total_afiles" -gt 0 ] 2>/dev/null; then
@@ -683,11 +683,11 @@ generate_reports() {
     case $format in
         1)
             echo -e "\n${GREEN}Generating Markdown report...${NC}"
-            predictive-ling report markdown "$input_file"
+            webbot2 report markdown "$input_file"
             ;;
         2)
             echo -e "\n${GREEN}Generating JSON report...${NC}"
-            predictive-ling report json "$input_file"
+            webbot2 report json "$input_file"
             ;;
         3)
             echo -e "\n${CYAN}Select language:${NC}"
@@ -705,13 +705,13 @@ generate_reports() {
                 *) lang="en" ;;
             esac
             echo -e "\n${GREEN}Generating Audio report...${NC}"
-            predictive-ling report audio "$input_file" --lang "$lang"
+            webbot2 report audio "$input_file" --lang "$lang"
             ;;
         4)
             echo -e "\n${GREEN}Generating all reports...${NC}"
-            predictive-ling report markdown "$input_file"
-            predictive-ling report json "$input_file"
-            predictive-ling report audio "$input_file" --lang "en"
+            webbot2 report markdown "$input_file"
+            webbot2 report json "$input_file"
+            webbot2 report audio "$input_file" --lang "en"
             ;;
         *)
             show_main_menu
@@ -723,7 +723,7 @@ generate_reports() {
     echo -e "${GREEN}║  ✓ Reports generated successfully!                           ║${NC}"
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo
-    echo -e "${CYAN}  Output location: ${YELLOW}~/.predictive-ling/output/${NC}"
+    echo -e "${CYAN}  Output location: ${YELLOW}~/.webbot2/output/${NC}"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -741,7 +741,7 @@ view_output() {
     echo
     
     # Get folders (not files), sorted by newest
-    run_folders=$(ls -td ~/.predictive-ling/output/*/ 2>/dev/null)
+    run_folders=$(ls -td ~/.webbot2/output/*/ 2>/dev/null)
     total=$(echo "$run_folders" | wc -l | tr -d ' ')
     
     if [ "$total" -gt 0 ] && [ -n "$run_folders" ]; then
@@ -820,10 +820,10 @@ configuration() {
     echo -e "${CYAN}  │${NC}  Current Settings:                                      ${CYAN}│${NC}"
     echo -e "${CYAN}  │${NC}                                                            ${CYAN}│${NC}"
     
-    if [ -f ~/.predictive-ling.env ]; then
+    if [ -f ~/.webbot2.env ]; then
         while IFS= read -r line; do
             echo -e "${CYAN}  │${NC}    $line${CYAN}                                          │${NC}"
-        done < ~/.predictive-ling.env
+        done < ~/.webbot2.env
     else
         echo -e "${CYAN}  │${NC}    No config found (run setup)                           ${CYAN}│${NC}"
     fi
@@ -855,7 +855,7 @@ configuration() {
             echo "(Get free key at https://openrouter.ai/keys)"
             read -r api_key
             if [ -n "$api_key" ]; then
-                echo "OPENROUTER_API_KEY=$api_key" > ~/.predictive-ling.env
+                echo "OPENROUTER_API_KEY=$api_key" > ~/.webbot2.env
                 echo -e "${GREEN}API key saved!${NC}"
             fi
             ;;
@@ -874,7 +874,7 @@ configuration() {
                 4) model="google/gemma-3-4b-it:free" ;;
                 *) model="nvidia/nemotron-3-super-120b-a12b:free" ;;
             esac
-            echo "OPENROUTER_MODEL=$model" >> ~/.predictive-ling.env
+            echo "OPENROUTER_MODEL=$model" >> ~/.webbot2.env
             echo -e "${GREEN}Default model set to: $model${NC}"
             ;;
         3)
@@ -882,8 +882,8 @@ configuration() {
             ;;
         4)
             echo -e "\n${GREEN}Testing API key...${NC}"
-            if [ -f ~/.predictive-ling.env ]; then
-                source ~/.predictive-ling.env
+            if [ -f ~/.webbot2.env ]; then
+                source ~/.webbot2.env
                 if [ -n "$OPENROUTER_API_KEY" ]; then
                     curl -s "https://openrouter.ai/api/v1/models" -H "Authorization: Bearer $OPENROUTER_API_KEY" | python3 -c "import json,sys; d=json.load(sys.stdin); print('✓ API key valid!' if 'data' in d else '✗ Invalid key')" 2>/dev/null || echo "✗ Connection error"
                 else
@@ -900,7 +900,7 @@ configuration() {
             read -r alias_query
             echo -e "${CYAN}Enter limit:${NC}"
             read -r alias_limit
-            echo "$alias_name|$alias_query|$alias_limit" >> ~/.predictive-ling_aliases
+            echo "$alias_name|$alias_query|$alias_limit" >> ~/.webbot2_aliases
             echo -e "${GREEN}Alias saved!${NC}"
             ;;
         0)
@@ -917,8 +917,8 @@ show_free_models() {
     show_banner
     echo -e "${YELLOW}=== AVAILABLE FREE LLM MODELS ===${NC}\n"
     
-    if [ -f ~/.predictive-ling.env ]; then
-        source ~/.predictive-ling.env
+    if [ -f ~/.webbot2.env ]; then
+        source ~/.webbot2.env
         if [ -n "$OPENROUTER_API_KEY" ]; then
             echo -e "${GREEN}Fetching models from OpenRouter...${NC}\n"
             curl -s "https://openrouter.ai/api/v1/models" -H "Authorization: Bearer $OPENROUTER_API_KEY" | python3 -c "
@@ -991,7 +991,7 @@ show_help() {
     echo "    • emerging technology"
     echo
     
-    echo -e "${CYAN}  Output: ${GREEN}~/.predictive-ling/output/${NC}"
+    echo -e "${CYAN}  Output: ${GREEN}~/.webbot2/output/${NC}"
     echo
     read -p "  Press Enter to continue..."
     show_main_menu
@@ -1059,7 +1059,7 @@ timeline_tracker() {
         echo
         
         # Find all analysis folders with data
-        analysis_folders=$(ls -td ~/.predictive-ling/output/20* 2>/dev/null | while read d; do
+        analysis_folders=$(ls -td ~/.webbot2/output/20* 2>/dev/null | while read d; do
             if [ -f "$d/analysis.json" ]; then echo "$d"; fi
         done)
         total_folders=$(echo "$analysis_folders" | wc -l | tr -d ' ')
@@ -1084,11 +1084,11 @@ timeline_tracker() {
         echo -e "${CYAN}  Copied $(ls "$GRAPH_INPUT" | wc -l | tr -d ' ') analyses to temp dir${NC}"
         
         TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-        GRAPH_OUTPUT=~/.predictive-ling/output/${TIMESTAMP}_graph
+        GRAPH_OUTPUT=~/.webbot2/output/${TIMESTAMP}_graph
         
         echo -e "${CYAN}  Building correlation graph...${NC}"
         
-        python3 -m predictive_ling_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.json" --format json 2>&1
+        python3 -m webbot2_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.json" --format json 2>&1
         
         if [ -f "$GRAPH_OUTPUT.json" ]; then
             echo
@@ -1106,7 +1106,7 @@ timeline_tracker() {
             
             if [ "$vis_choice" = "1" ] || [ "$vis_choice" = "3" ]; then
                 # Copy HTML viewer
-                cp "$(dirname "$0")/src/predictive_ling_cli/graph_viewer.html" "$GRAPH_OUTPUT.html"
+                cp "$(dirname "$0")/src/webbot2_cli/graph_viewer.html" "$GRAPH_OUTPUT.html"
                 # Embed graph data into HTML using Python
                 python3 << PYEOF
 import json, re, sys
@@ -1124,7 +1124,7 @@ PYEOF
             fi
             
             if [ "$vis_choice" = "2" ] || [ "$vis_choice" = "3" ]; then
-                python3 -m predictive_ling_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.graphml" --format graphml 2>&1
+                python3 -m webbot2_cli.graph_builder "$GRAPH_INPUT/" --output "$GRAPH_OUTPUT.graphml" --format graphml 2>&1
                 echo -e "${CYAN}  GraphML: $GRAPH_OUTPUT.graphml${NC}"
             fi
             
@@ -1145,7 +1145,7 @@ PYEOF
     
     CURRENT_YEAR=$(date +%Y)
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.predictive-ling/output/${TIMESTAMP}_timeline
+    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_timeline
     mkdir -p "$OUTPUT_DIR"
     
     # Function to extract year from filename (e.g., ALTA_2015_December -> 2015)
@@ -1173,12 +1173,12 @@ PYEOF
         normalized_lower=$(echo "$normalized" | tr '[:upper:]' '[:lower:]')
         if [ -n "$normalized" ]; then
             # Search for any folder containing the normalized name
-            existing_analysis=$(ls -t ~/.predictive-ling/output/*${normalized}*/analysis.json ~/.predictive-ling/output/*${normalized_lower}*/analysis.json 2>/dev/null | head -1)
+            existing_analysis=$(ls -t ~/.webbot2/output/*${normalized}*/analysis.json ~/.webbot2/output/*${normalized_lower}*/analysis.json 2>/dev/null | head -1)
         fi
         
         # Fallback: search all folders for analysis.json with matching year
         if [ -z "$existing_analysis" ]; then
-            existing_analysis=$(ls -t ~/.predictive-ling/output/*${pdf_year}*/analysis.json 2>/dev/null | head -1)
+            existing_analysis=$(ls -t ~/.webbot2/output/*${pdf_year}*/analysis.json 2>/dev/null | head -1)
         fi
         
         if [ -n "$existing_analysis" ] && [ -f "$existing_analysis" ]; then
@@ -1235,10 +1235,10 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
         rm -f "$TMP_TEXT"
         
         # Run analysis
-        predictive-ling analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -3
+        webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -3
         
-        if [ -f ~/.predictive-ling/output/analysis.json ]; then
-            cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/${filename}_analysis.json"
+        if [ -f ~/.webbot2/output/analysis.json ]; then
+            cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/${filename}_analysis.json"
         fi
     }
     
@@ -1482,7 +1482,7 @@ print(f'Total: {len(predictions)} | Past: {len(past)} | Now: {len(now)} | Future
         cat "$OUTPUT_DIR/timeline_data.json"
     } > "$OUTPUT_DIR/timeline_report.md"
     
-    ln -sf "$OUTPUT_DIR" ~/.predictive-ling/output/latest
+    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
     
     echo
     echo -e "${GREEN}  ✓ Timeline complete!${NC}"
@@ -1569,7 +1569,7 @@ except Exception as e:
     # Get file name for output folder
     filename=$(basename "$file_path" | sed 's/\.[^.]*$//')
     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=~/.predictive-ling/output/${TIMESTAMP}_${filename}
+    OUTPUT_DIR=~/.webbot2/output/${TIMESTAMP}_${filename}
     mkdir -p "$OUTPUT_DIR"
     
     # Copy source file to output
@@ -1592,19 +1592,19 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     echo -e "${CYAN}  [1/2] Analyzing with LLM (WebBot 2.0)...${NC}"
     
     # Run analysis on the extracted text
-    predictive-ling analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
+    webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
     
-    if [ ! -f ~/.predictive-ling/output/analysis.json ]; then
+    if [ ! -f ~/.webbot2/output/analysis.json ]; then
         echo -e "${RED}  ✗ Analysis failed${NC}"
         read -p "  Press Enter to continue..."
         show_main_menu
         return
     fi
     
-    cp ~/.predictive-ling/output/analysis.json "$OUTPUT_DIR/analysis.json"
+    cp ~/.webbot2/output/analysis.json "$OUTPUT_DIR/analysis.json"
     
     echo -e "${CYAN}  [2/2] Generating report...${NC}"
-    predictive-ling report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
+    webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
     
     # Add header to report
     {
@@ -1619,7 +1619,7 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
     
     # Update latest symlink
-    ln -sf "$OUTPUT_DIR" ~/.predictive-ling/output/latest
+    ln -sf "$OUTPUT_DIR" ~/.webbot2/output/latest
     
     echo
     echo -e "${GREEN}  ✓ Analysis complete!${NC}"

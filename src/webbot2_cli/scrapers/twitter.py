@@ -3,7 +3,7 @@
 from typing import Any, Dict, List
 import httpx
 import os
-from predictive_ling_cli.utils import increment_counter
+from webbot2_cli.utils import increment_counter
 
 
 class TwitterScraper:
