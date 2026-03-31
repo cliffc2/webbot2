@@ -57,9 +57,29 @@ class TemporalDetector:
             },
         ]
 
-    def detect(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def detect(self, data: Any) -> List[Dict[str, Any]]:
         """Detect temporal anomalies in scraped data."""
         anomalies = []
+
+        # Handle list input (direct array of items)
+        if isinstance(data, list):
+            for item in data:
+                text = ""
+                if isinstance(item, dict):
+                    text = item.get("text", "") or item.get("content", "") or item.get("title", "")
+                elif isinstance(item, str):
+                    text = item
+
+                if not text:
+                    continue
+
+                found = self._scan_text(text, "unknown")
+                anomalies.extend(found)
+            return anomalies
+
+        # Handle dict input (platform-keyed)
+        if not isinstance(data, dict):
+            return anomalies
 
         for platform, items in data.items():
             if not isinstance(items, list):

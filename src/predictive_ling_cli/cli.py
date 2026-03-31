@@ -21,6 +21,7 @@ from predictive_ling_cli.analyzers.llm_analyzer import LLMAnalyzer
 from predictive_ling_cli.reporting.markdown import MarkdownReporter
 from predictive_ling_cli.reporting.json_output import JSONReporter
 from predictive_ling_cli.reporting.audio import AudioReporter
+from predictive_ling_cli.utils import print_summary, reset_counts
 
 
 def get_output_dir() -> Path:
@@ -155,7 +156,7 @@ def analyze_llm(input_file: str, model: str, prompt_type: str, output: Optional[
         Path(output).write_text(json.dumps(results, indent=2))
         click.echo(f"Results written to {output}")
     else:
-        output_path = get_output_dir() / f"analysis_{prompt_type}.json"
+        output_path = get_output_dir() / "analysis.json"
         output_path.write_text(json.dumps(results, indent=2))
         click.echo(f"Results written to {output_path}")
 
@@ -232,6 +233,8 @@ def report_audio(input_file: str, lang: str, output: Optional[str]):
 @click.option("--model", "-m", default="gpt-4", help="LLM model to use")
 def run_all(query: str, limit: int, model: str):
     """Run the complete pipeline: scrape -> analyze -> report."""
+    reset_counts()
+
     click.echo("=" * 50)
     click.echo("Starting Predictive Linguistics Pipeline")
     click.echo("=" * 50)
@@ -299,6 +302,8 @@ def run_all(query: str, limit: int, model: str):
     click.echo("Pipeline Complete!")
     click.echo(f"Output directory: {output_dir}")
     click.echo("=" * 50)
+
+    print_summary()
 
     return analysis_results
 

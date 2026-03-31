@@ -14,9 +14,12 @@
         }
         #status { color: #666; }
         h1 { font-size: 18px; margin: 0 0 10px 0; color: #00d4ff; }
-        .legend { display: flex; gap: 10px; margin-bottom: 10px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; }
-    </style>
+    .legend { display: flex; gap: 10px; margin-bottom: 10px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .zoom-controls { display: flex; gap: 5px; margin-top: 10px; }
+    .zoom-btn { padding: 5px 10px; background: #333; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
+    .zoom-btn:hover { background: #555; }
+</style>
 </head>
 <body>
 <div id="controls">
@@ -26,6 +29,11 @@
         <div><div class="dot" style="background:#ff6b6b"></div> Source</div>
         <div><div class="dot" style="background:#4ecdc4"></div> Prediction</div>
         <div><div class="dot" style="background:#ffe66d"></div> Theme</div>
+    </div>
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="zoomIn()">+</button>
+        <button class="zoom-btn" onclick="zoomOut()">-</button>
+        <button class="zoom-btn" onclick="resetZoom()">Reset</button>
     </div>
 </div>
 
@@ -63,17 +71,32 @@ const svg = d3.select("body").append("svg")
     .attr("width", window.innerWidth)
     .attr("height", window.innerHeight);
 
+const g = svg.append("g");
+
+let currentZoom = 1;
+const zoom = d3.zoom()
+    .scaleExtent([0.1, 10])
+    .on("zoom", (event) => {
+        currentZoom = event.transform.k;
+        g.attr("transform", event.transform);
+    });
+svg.call(zoom);
+
+function zoomIn() { svg.transition().call(zoom.scaleBy, 1.3); }
+function zoomOut() { svg.transition().call(zoom.scaleBy, 0.7); }
+function resetZoom() { svg.transition().call(zoom.transform, d3.zoomIdentity); }
+
 const sim = d3.forceSimulation(nodes)
     .force("link", d3.forceLink(links).id(d => d.id).distance(80))
     .force("charge", d3.forceManyBody().strength(-300))
     .force("center", d3.forceCenter(window.innerWidth / 2, window.innerHeight / 2));
 
-svg.append("g").selectAll("line")
+g.selectAll("line")
     .data(links).join("line")
     .attr("stroke", "#444")
     .attr("stroke-width", d => Math.min(d.weight || 1, 2));
 
-svg.append("g").selectAll("circle")
+g.selectAll("circle")
     .data(nodes).join("circle")
     .attr("r", d => d.type === 'source' ? 15 : d.type === 'prediction' ? 10 : 6)
     .attr("fill", d => colors[d.type] || "#666")
@@ -82,7 +105,7 @@ svg.append("g").selectAll("circle")
         .on("drag", e => { e.subject.fx = e.x; e.subject.fy = e.y; })
         .on("end", e => { if (!e.active) sim.alphaTarget(0); e.subject.fx = null; e.subject.fy = null; }));
 
-svg.append("g").selectAll("text")
+g.selectAll("text")
     .data(nodes).join("text")
     .text(d => d.label ? d.label.substring(0, 15) : d.id.substring(0, 10))
     .attr("font-family", "Helvetica, Arial, sans-serif")
@@ -92,12 +115,12 @@ svg.append("g").selectAll("text")
     .attr("dy", d => d.type === 'source' ? 25 : 18);
 
 sim.on("tick", () => {
-    svg.selectAll("line")
+    g.selectAll("line")
         .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
         .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
-    svg.selectAll("circle")
+    g.selectAll("circle")
         .attr("cx", d => d.x).attr("cy", d => d.y);
-    svg.selectAll("text")
+    g.selectAll("text")
         .attr("x", d => d.x).attr("y", d => d.y);
 });
 

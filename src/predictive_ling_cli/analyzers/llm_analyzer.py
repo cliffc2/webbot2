@@ -14,6 +14,7 @@ load_dotenv(os.path.expanduser("~/predictive-ling/.env"))
 load_dotenv(".env")
 
 from .temporal_detector import detect_temporal_anomalies
+from predictive_ling_cli.utils import increment_counter
 
 
 class LLMAnalyzer:
@@ -44,8 +45,12 @@ class LLMAnalyzer:
 
         return "You are an expert in analyzing linguistic patterns using WebBot methodology."
 
-    def analyze(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(self, data: Any) -> Dict[str, Any]:
         """Analyze data using LLM with WebBot methodology."""
+        # Wrap list in dict if needed
+        if isinstance(data, list):
+            data = {"items": data}
+
         temporal_anomalies = []
         if self.temporal_detector_enabled:
             temporal_anomalies = detect_temporal_anomalies(data)
@@ -58,9 +63,11 @@ class LLMAnalyzer:
 
         openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
         if openrouter_api_key:
+            increment_counter("llm")
             return self._analyze_openrouter(data, openrouter_api_key)
 
         try:
+            increment_counter("llm")
             base_url = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
             response = httpx.post(
                 f"{base_url}/chat/completions",
@@ -96,9 +103,10 @@ class LLMAnalyzer:
 
     def _analyze_openrouter(self, data: Dict[str, Any], api_key: str) -> Dict[str, Any]:
         """Analyze data using OpenRouter (free tier) with WebBot methodology."""
-        model = os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-super-120b-a12b:free")
+        model = os.getenv("OPENROUTER_MODEL", "qwen/qwen3.6-plus-preview:free")
 
         try:
+            increment_counter("llm")
             response = httpx.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 headers={
@@ -117,6 +125,7 @@ class LLMAnalyzer:
                         },
                     ],
                     "temperature": 0.7,
+                    "max_tokens": 4000,
                 },
                 timeout=180,
             )
