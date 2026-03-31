@@ -1,10 +1,10 @@
-# Predictive Linguistics CLI
+# Predictive Linguistics CLI (WebBot 2.0)
 
 ![webbot2 preview](webbot2.png)
 
-A Python CLI tool for multi-agent predictive linguistics workflow: cross-platform meme/archetype detection and synthesis, inspired by Clif High's research and spirittechie's work on https://github.com/spirittechie/predictive-linguistics-webbot
+A Python CLI tool for multi-agent predictive linguistics workflow using the methodology pioneered by clif high (1993). Inspired by spirittechie's work on https://github.com/spirittechie/predictive-linguistics-webbot
 
-**No API keys required!** Uses free alternative frontends for scraping and free LLM tiers for analysis.
+**WebBot 2.0** scrapes news APIs and web content, analyzes for predictive patterns using LLM, and generates reports detecting "future leaks" - time-displaced content ahead of its time.
 
 ---
 
@@ -12,189 +12,138 @@ A Python CLI tool for multi-agent predictive linguistics workflow: cross-platfor
 
 ### 1. Install
 ```bash
-cd predictive-ling-cli
 pip install -e .
 ```
 
-### 2. Interactive Menu (Recommended)
+### 2. Run Interactive Menu
 ```bash
 ./start-webbot2.sh
 ```
-The menu-driven interface lets you:
-- Run full pipeline or individual steps
-- Select platforms, models, report formats
-- Configure API keys and test connections
-- View output files
 
-### 3. CLI Usage (Alternative)
+### 3. Quick Analysis
 ```bash
-predictive-ling run-all --query "AI future" --limit 25
-```
-
-### 4. View Results
-```bash
-cat ~/.predictive-ling/output/report.md
-```
-
-### 5. Configure (Optional)
-For free LLM analysis, get a free key at https://openrouter.ai/keys:
-```bash
-echo 'OPENROUTER_API_KEY=your_key_here' > ~/.predictive-ling.env
+predictive-ling scrape news --query "AI future" --limit 25
 ```
 
 ---
 
-## How It Works (No API Keys Needed!)
+## Main Menu
 
-| Platform | Method | No API Key |
-|----------|--------|------------|
-| Twitter/X | Nitter (nitter.net) | ✓ |
-| Reddit | Old Reddit (old.reddit.com) | ✓ |
-| YouTube | Invidious (yewtu.be) | ✓ |
-| News | RSS feeds (BBC, Reuters, AP, NPR) | ✓ |
-| LLM | OpenRouter free tier | Optional |
+```
+  [1] Web Scraper        (Scrapy - any URL)
+  [2] Analyze Local File (PDF/MD → report)
+  [3] Quick Analysis     (Currents API → analyze → report)
+  [4] NewsAPI Analysis  (NewsAPI → analyze → report)
+  [5] Run Pipeline       (choose platforms)
+  [6] View Results       (output folder)
+  [7] Configuration     (API key, settings)
+  [8] Timeline Tracker  (batch analyze → timeline view)
+  [0] Exit
+```
+
+---
+
+## Features
+
+### Web Scraper (Scrapy)
+- Single URL scraping with any website
+- Quick presets: Hacker News, Reddit, BBC, Wired, Ars Technica
+- Extract all links from a page
+- View history and analyze with LLM
+
+### News Sources
+- **Currents API** - 600 requests/day (recommended)
+- **NewsAPI** - 100 requests/day
+- RSS feeds fallback (BBC, Reuters, AP, NPR)
+
+### LLM Analysis (OpenRouter)
+Free tier models available:
+- `qwen/qwen3.6-plus-preview:free` (recommended)
+- `nvidia/nemotron-3-super-120b-a12b:free`
+- `minimax/minimax-m2.5:free`
+
+---
+
+## Predictive Linguistics Methodology
+
+Based on clif high's original WebBot (1993-2010):
+
+### Entity Categorization
+- **GlobalPop** - Humanity's future, local or global
+- **Markets** - Paper debt, commodities, currency, digital currency
+- **Terra** - Planet/physical environment
+- **SpaceGoatFarts** - Officially denied, unknown, speculative (UFOs, Area 51)
+
+### Prediction Timeframes
+- **IM (Immediacy)**: 3 days to 3 weeks
+- **ST (Short Term)**: 4 weeks to 3 months
+- **LT (Long Term)**: 3 months to 19 months
+
+### Analysis Output
+- Temporal anomalies (time-displacement detection)
+- Memetic lifecycle stages (Awareness → Excitement → Momentum → Critique → Integration → Nostalgia)
+- Archetypes (Catalyst, Herald, Shapeshifter, Shadow, Wise Elder, Trickster, Innocent, Warrior)
+- Detail words (words in unexpected contexts - high predictive value)
+- Future leak indicators with confidence scores
+- Cross-platform pattern correlation
 
 ---
 
 ## Commands
 
+### Scrape News
+```bash
+predictive-ling scrape news --query "technology" --limit 50
+```
+
+### Analyze
+```bash
+predictive-ling analyze llm data.json --prompt-type webbot
+```
+
+### Generate Report
+```bash
+predictive-ling report markdown analysis.json --output report.md
+```
+
 ### Full Pipeline
 ```bash
-predictive-ling run-all --query "future leaks" --limit 50
-```
-
-### Scrape Individual Platforms
-```bash
-# Twitter via Nitter
-predictive-ling scrape twitter --query "AI" --limit 100
-
-# Reddit via Old Reddit
-predictive-ling scrape reddit --subreddit technology --query "AI"
-
-# YouTube via Invidious
-predictive-ling scrape youtube --query "future" --limit 50
-
-# News via RSS
-predictive-ling scrape news --query "trends" --limit 50
-```
-
-### Generate Reports
-```bash
-# Markdown
-predictive-ling report markdown analysis.json --output report.md
-
-# JSON
-predictive-ling report json analysis.json --output report.json
-
-# Audio (TTS)
-predictive-ling report audio analysis.json --output report.mp3
-```
-
-### Analyze with LLM
-```bash
-predictive-ling analyze llm data.json --model nvidia/nemotron-3-super-120b-a12b:free
+predictive-ling run-all --query "AI trends" --limit 25
 ```
 
 ---
 
 ## Configuration
 
-### Environment Variables
-
 Create `~/.predictive-ling.env`:
 ```bash
-# OpenRouter (free - recommended)
+# OpenRouter (free)
 OPENROUTER_API_KEY=sk-or-...
-OPENROUTER_MODEL=nvidia/nemotron-3-super-120b-a12b:free
+OPENROUTER_MODEL=qwen/qwen3.6-plus-preview:free
 
-# OR local Ollama
-# OPENAI_API_BASE=http://localhost:11434/v1
-# OPENAI_API_KEY=ollama
+# News API (optional)
+CURRENTS_API_KEY=your_key
+NEWSAPI_KEY=your_key
 ```
-
-### Available Free LLM Models
-
-| Model | Description |
-|-------|-------------|
-| `nvidia/nemotron-3-super-120b-a12b:free` | Largest (120B), slowest |
-| `minimax/minimax-m2.5:free` | Good balance |
-| `openrouter/free` | Auto-selects best available |
 
 ---
 
 ## Output
 
-Results saved to `~/.predictive-ling/output/`:
+Results saved to `~/.predictive-ling/output/` and `./WEBBOT_OUTPUT_DIR/`:
+- `analysis.json` - Structured analysis
 - `report.md` - Markdown report
-- `report.json` - Structured JSON
-- `report_*.mp3` - Audio TTS summary
-
----
-
-## opencode Integration
-
-Custom commands available in opencode TUI:
-
-```
-/analyze <query>   # Run analysis pipeline
-/pl-status         # Check output status
-```
-
----
-
-## Interactive Menu
-
-Launch the interactive menu:
-```bash
-./start-webbot2.sh
-```
-
-### Menu Options
-
-| Option | Description |
-|--------|-------------|
-| 1 | Run Full Pipeline (scrape + analyze + report) |
-| 2 | Scrape Data (Twitter, Reddit, YouTube, News, All) |
-| 3 | Analyze Data (select model & prompt type) |
-| 4 | Generate Reports (Markdown, JSON, Audio) |
-| 5 | View Output Files |
-| 6 | Configuration (API keys, models, test) |
-| 7 | Help/Info |
-
-### Menu Features
-- Query input
-- Limit/quantity input
-- Platform selection
-- Report format selection
-- Analysis model picker
-- Free LLM model list
-- API key configuration & testing
-
----
-
-## Commands Reference
-
-| Command | Description |
-|---------|-------------|
-| `predictive-ling scrape twitter` | Scrape Twitter/X |
-| `predictive-ling scrape reddit` | Scrape Reddit |
-| `predictive-ling scrape youtube` | Scrape YouTube |
-| `predictive-ling scrape news` | Scrape news RSS |
-| `predictive-ling analyze llm` | Analyze with LLM |
-| `predictive-ling report markdown` | Generate Markdown |
-| `predictive-ling report json` | Generate JSON |
-| `predictive-ling report audio` | Generate TTS audio |
-| `predictive-ling run-all` | Full pipeline |
+- `report.json` - JSON report
 
 ---
 
 ## Requirements
 
 - Python 3.10+
-- Dependencies: click, httpx, python-dotenv, beautifulsoup4, gtts
+- Dependencies: click, httpx, python-dotenv, beautifulsoup4, scrapy
 
 ---
 
 ## License
 
-MIT
+MIT - Based on original WebBot methodology by clif high
