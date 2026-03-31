@@ -1,2 +1,0 @@
-[console_scripts]
-webbot2 = webbot2_cli.cli:main
