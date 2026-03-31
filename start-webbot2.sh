@@ -24,52 +24,37 @@ BOLD='\033[1m'
 
 show_banner() {
     clear
-    
-    echo -e "${CYAN}"
-    cat << 'EOF'
-.          ..                       s                   
-  kas                         .  x9"       .  ms"                      :8      .--~*jcc.    
- 88x.   .q.   .q.             `t888       `t888              k.      .88     lw     988Lc  
-'8888X x888: x888       .p     8888   .    8888   .    ...ue888b    :888ooo d888b   `8888> 
- `8888  888X '888k    88888.   9888..clif  high..1000  888R Y888S -artbell1 ?8888>  98888F 
-  X888  888X  888X :888'8888.  9888  888C  9888  888H  888R O888>   8888     "**"  x88888~ 
-  X888  888X  888X d888 '88%"  9888  888L  9888  888I  888R N888>   8888          d8888*`  
-  X888  888X  888X 8888.+"     9888  888I  9888  888G  888R I888>   8888        emc"`   : 
- .X888  888X. 888~ 8888L       9888  888F  9888  888H  8888c1888   .8888Lu=   :?.....  cgf 
- `%88%``"*888J"    '8888c. .+ .8888  888" .8888  888"  "*888*B"    ^T888*    C""8888888888 
-   `~     `"        "88888%    `%888*%"    `%888*%"      'Y"         'Y"     8:  "cliffc2  
-                      "//'        "`          "`                             ""    "**"` 
-EOF
-
-    echo -e "${NC}"
     echo
-    echo -e "${GREEN}       Predictive Linguistics CLI${NC}"
-    echo -e "${YELLOW}   Thanks @clif_high & spirittechie${NC}"
+    echo "  WEBBOT 2.0"
+    echo "  =========="
+    echo
+    echo "  Predictive Linguistics CLI"
+    echo "  Thanks @clif_high & spirittechie"
     echo
 }
 
 show_main_menu() {
     show_banner
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}                    M A I N   M E N U                       ${NC}"
-    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
-    echo -e "${CYAN}  [1] Web Scraper        (Scrapy - any URL)${NC}"
-    echo -e "${CYAN}  [2] Analyze Local File (PDF/MD → report)${NC}"
-    echo -e "${CYAN}  [3] Quick Analysis     (Currents API → analyze → report)${NC}"
-    echo -e "${CYAN}  [4] NewsAPI Analysis  (NewsAPI → analyze → report)${NC}"
-    echo -e "${CYAN}  [5] Run Pipeline       (choose platforms)${NC}"
-    echo -e "${CYAN}  [6] View Results       (output folder)${NC}"
-    echo -e "${CYAN}  [7] Configuration     (API key, settings)${NC}"
-    echo -e "${CYAN}  [8] Timeline Tracker   (batch analyze → timeline view)${NC}"
-    echo -e "${CYAN}  [0] Exit${NC}"
+    echo "  MAIN MENU"
+    echo "  ========="
     echo
-    echo -ne "${GREEN}  Enter choice [0-8]: ${NC}"
+    echo "  [1] Web Scraper        (Scrapy - any URL)"
+    echo "  [2] Analyze Local File (PDF/MD → report)"
+    echo "  [3] Quick Analysis     (Currents API → analyze → report)"
+    echo "  [4] NewsAPI Analysis  (NewsAPI → analyze → report)"
+    echo "  [5] Run Pipeline       (choose platforms)"
+    echo "  [6] View Results       (output folder)"
+    echo "  [7] Configuration     (API key, settings)"
+    echo "  [8] Timeline Tracker   (batch analyze → timeline view)"
+    echo "  [0] Exit"
+    echo
+    echo -ne "  Enter choice [0-8]: "
     read -r choice
     
     while [[ ! "$choice" =~ ^[0-8]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 0-8:${NC}"
-        echo -ne "${GREEN}  Enter choice [0-8]: ${NC}"
+        echo "  Invalid. Enter 0-8:"
+        echo -ne "  Enter choice [0-8]: "
         read -r choice
     done
     
@@ -165,7 +150,7 @@ quick_analysis() {
             mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
         fi
     else
-        echo -e "${RED}  No data scraped${NC}"
+        echo "  ✗ No data scraped"
     fi
     
     # Update latest symlink
@@ -270,7 +255,7 @@ newsapi_analysis() {
             mv "$OUTPUT_DIR/report.md.tmp" "$OUTPUT_DIR/report.md"
         fi
     else
-        echo -e "${RED}  No data scraped${NC}"
+        echo "  ✗ No data scraped"
     fi
     
     # Update latest symlink
@@ -425,8 +410,8 @@ run_full_pipeline() {
     read -r mode
     
     while [[ ! "$mode" =~ ^[1-3]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 1-3:${NC}"
-        echo -ne "${GREEN}  > Mode [1-3]: ${NC}"
+        echo "  Invalid. Enter 1-3:"
+        echo -ne "  > Mode [1-3]: "
         read -r mode
     done
     
@@ -466,7 +451,7 @@ scrape_data() {
     read -r platform
     
     while [[ ! "$platform" =~ ^[0-4]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 0-4:${NC}"
+        echo "  Invalid. Enter 0-4:"
         echo -ne "${GREEN}  > Platform [0-4]: ${NC}"
         read -r platform
     done
@@ -534,7 +519,7 @@ analyze_data() {
     read -r model_choice
     
     while [[ ! "$model_choice" =~ ^[1-5]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 1-5:${NC}"
+        echo "  Invalid. Enter 1-5:"
         echo -ne "${GREEN}  > Model [1-5]: ${NC}"
         read -r model_choice
     done
@@ -558,7 +543,7 @@ analyze_data() {
     read -r prompt_choice
     
     while [[ ! "$prompt_choice" =~ ^[1-4]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 1-4:${NC}"
+        echo "  Invalid. Enter 1-4:"
         echo -ne "${GREEN}  > Prompt [1-4]: ${NC}"
         read -r prompt_choice
     done
