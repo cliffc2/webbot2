@@ -25,11 +25,18 @@ BOLD='\033[1m'
 show_banner() {
     clear
     echo
-    echo "  WEBBOT 2.0"
-    echo "  =========="
-    echo
-    echo "  Predictive Linguistics CLI"
-    echo "  Thanks @clif_high & spirittechie"
+    echo "           ..                      s                    "
+    echo "  k.                             a\"           y\"                      :8      .--~**\$jc.    "
+    echo "  88x.   .a.   .s.             \`t888       \`t888              e.      .88     lw     988lc  "
+    echo "'8888X x888: x888       .p     E718   .    8888   .    ...ue888b    :888ooo d888b   \`8888d "
+    echo " \`8888  888X '888k    88888.   98TX..clif  high..1000  888R Y888S -artbell1 ?8888>  98888M "
+    echo "  X888  888X  888X :888'8888.  9888  888C  9888  888H  888R O888>   8888     \"**\"  x88888~ "
+    echo "  X888  888X  888X d888 '88%\"  9888  888L  9888  888I  888R N888>   8888          d8888*\`  "
+    echo "  X888  888X  888X 8888.+\"     9888  888I  9888  888G  888R I888>   8888        emc\"\`    : "
+    echo " .X888  888X. 718~ 8888L       9888  888F  9888  888H  8888c1888   .8888Lu=   :?.....  cgf "
+    echo " \`%88%\`\`\"*888Q\"    '8888Q. .+ .8888  888\" .8888  888\"  \"*88888\"    \`^*888*    C\"\"8888888888 "
+    echo "   \`~     \"\`        \"88888%    \`%888*%\"    \`%888*%\"      'Y\"         'S\`\"     C:  \"cliffc2  "
+    echo "                      //\"'        \"\`          \"\`                              \"\"    \"**\`  "
     echo
 }
 
