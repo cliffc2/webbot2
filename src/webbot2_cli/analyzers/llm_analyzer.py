@@ -13,7 +13,7 @@ load_dotenv(".env")
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
 from .temporal_detector import detect_temporal_anomalies
-from predictive_ling_cli.utils import increment_counter
+from webbot2_cli.utils import increment_counter
 
 
 class LLMAnalyzer:

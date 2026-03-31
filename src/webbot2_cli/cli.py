@@ -12,15 +12,15 @@ load_dotenv()
 load_dotenv(".env")
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
-from predictive_ling_cli.scrapers.twitter import TwitterScraper
-from predictive_ling_cli.scrapers.reddit import RedditScraper
-from predictive_ling_cli.scrapers.youtube import YouTubeScraper
-from predictive_ling_cli.scrapers.news import NewsScraper
-from predictive_ling_cli.analyzers.llm_analyzer import LLMAnalyzer
-from predictive_ling_cli.reporting.markdown import MarkdownReporter
-from predictive_ling_cli.reporting.json_output import JSONReporter
-from predictive_ling_cli.reporting.audio import AudioReporter
-from predictive_ling_cli.utils import print_summary, reset_counts
+from webbot2_cli.scrapers.twitter import TwitterScraper
+from webbot2_cli.scrapers.reddit import RedditScraper
+from webbot2_cli.scrapers.youtube import YouTubeScraper
+from webbot2_cli.scrapers.news import NewsScraper
+from webbot2_cli.analyzers.llm_analyzer import LLMAnalyzer
+from webbot2_cli.reporting.markdown import MarkdownReporter
+from webbot2_cli.reporting.json_output import JSONReporter
+from webbot2_cli.reporting.audio import AudioReporter
+from webbot2_cli.utils import print_summary, reset_counts
 
 
 def get_output_dir() -> Path:
