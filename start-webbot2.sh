@@ -57,7 +57,7 @@ show_main_menu() {
     echo "  ========="
     echo
     echo "  [1] Web Scraper        (Scrapy - any URL)"
-    echo "  [2] Analyze Local File (PDF/MD → report)"
+    echo "  [2] Analyze Local File (PDF/MD/JSON → report)"
     echo "  [3] Quick Analysis     (Currents API → analyze → report)"
     echo "  [4] NewsAPI Analysis  (NewsAPI → analyze → report)"
     echo "  [5] Run Pipeline       (choose platforms)"
@@ -1522,13 +1522,14 @@ analyze_local_file() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo -e "${YELLOW}         A N A L Y Z E   L O C A L   F I L E               ${NC}"
-    echo -e "${YELLOW}              (PDF or Markdown files)                         ${NC}"
+    echo -e "${YELLOW}              (PDF, Markdown, or JSON files)                  ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
-    echo -e "${CYAN}  Enter path to file (PDF or Markdown):${NC}"
+    echo -e "${CYAN}  Enter path to file:${NC}"
+    echo -e "${CYAN}  • PDF/MD  → extract text → analyze → report${NC}"
+    echo -e "${CYAN}  • JSON    → analyze (or report if already analyzed)${NC}"
     echo -e "${CYAN}  Tip: Drag & drop file from Finder to get path${NC}"
-    echo -e "${CYAN}  Example: ~/Documents/clif-high-webbot/analysis_input/ALTA_2016_April.pdf${NC}"
     echo
     echo -ne "${GREEN}  > File path: ${NC}"
     read -r file_path
@@ -1548,23 +1549,75 @@ analyze_local_file() {
     ext="${file_path##*.}"
     ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
     
-    if [ "$ext" != "pdf" ] && [ "$ext" != "md" ] && [ "$ext" != "markdown" ]; then
+    if [ "$ext" != "pdf" ] && [ "$ext" != "md" ] && [ "$ext" != "markdown" ] && [ "$ext" != "json" ]; then
         echo -e "${RED}  ✗ Unsupported file type: .$ext${NC}"
-        echo -e "${CYAN}  Supported: .pdf, .md, .markdown${NC}"
+        echo -e "${CYAN}  Supported: .pdf, .md, .markdown, .json${NC}"
         echo
         read -p "  Press Enter to continue..."
         show_main_menu
         return
     fi
     
-    echo
-    echo -e "${CYAN}  Extracting text from .$ext file...${NC}"
+    # Get file name for output folder
+    filename=$(basename "$file_path" | sed 's/\.[^.]*$//')
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    OUTPUT_DIR=$WEBBOT_OUTPUT_DIR/${TIMESTAMP}_${filename}
+    mkdir -p "$OUTPUT_DIR"
     
-    # Create temp file for extracted text
-    TMP_TEXT=/tmp/local_analyze_$$.txt
+    # Copy source file to output
+    cp "$file_path" "$OUTPUT_DIR/source.${ext}"
     
-    if [ "$ext" = "pdf" ]; then
-        python3 -c "
+    if [ "$ext" = "json" ]; then
+        # JSON file - check if it's already analysis data or raw scrape data
+        echo -e "${CYAN}  Checking JSON structure...${NC}"
+        
+        is_analysis=$(python3 -c "
+import json
+with open('$file_path') as f:
+    d = json.load(f)
+has_analysis = 'temporal_anomalies' in d or 'archetypes' in d or 'future_leaks' in d
+print('yes' if has_analysis else 'no')
+" 2>/dev/null)
+        
+        if [ "$is_analysis" = "yes" ]; then
+            echo -e "${GREEN}  ✓ Already contains analysis data${NC}"
+            cp "$file_path" "$OUTPUT_DIR/analysis.json"
+            echo -e "${CYAN}  [1/1] Generating report from existing analysis...${NC}"
+            webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
+        else
+            echo -e "${CYAN}  Contains raw data - running LLM analysis...${NC}"
+            cp "$file_path" "$OUTPUT_DIR/data.json"
+            echo -e "${CYAN}  [1/2] Analyzing with LLM (WebBot 2.0)...${NC}"
+            
+            if ! webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10; then
+                echo -e "${RED}  ✗ Analysis failed${NC}"
+                read -p "  Press Enter to continue..."
+                show_main_menu
+                return
+            fi
+            
+            if [ ! -f "$WEBBOT_OUTPUT_DIR/analysis.json" ]; then
+                echo -e "${RED}  ✗ Analysis failed - no output found${NC}"
+                read -p "  Press Enter to continue..."
+                show_main_menu
+                return
+            fi
+            
+            cp "$WEBBOT_OUTPUT_DIR/analysis.json" "$OUTPUT_DIR/analysis.json"
+            
+            echo -e "${CYAN}  [2/2] Generating report...${NC}"
+            webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
+        fi
+    else
+        # PDF or Markdown - extract text and analyze
+        echo
+        echo -e "${CYAN}  Extracting text from .$ext file...${NC}"
+        
+        # Create temp file for extracted text
+        TMP_TEXT=/tmp/local_analyze_$$.txt
+        
+        if [ "$ext" = "pdf" ]; then
+            python3 -c "
 import sys
 try:
     import PyPDF2
@@ -1580,30 +1633,21 @@ except Exception as e:
     print(f'ERROR: {e}', file=sys.stderr)
     sys.exit(1)
 " 2>&1
-        if [ $? -ne 0 ] || [ ! -s "$TMP_TEXT" ]; then
-            echo -e "${RED}  ✗ Failed to extract text from PDF${NC}"
-            rm -f "$TMP_TEXT"
-            read -p "  Press Enter to continue..."
-            show_main_menu
-            return
+            if [ $? -ne 0 ] || [ ! -s "$TMP_TEXT" ]; then
+                echo -e "${RED}  ✗ Failed to extract text from PDF${NC}"
+                rm -f "$TMP_TEXT"
+                read -p "  Press Enter to continue..."
+                show_main_menu
+                return
+            fi
+        else
+            # Markdown - just copy
+            cp "$file_path" "$TMP_TEXT"
         fi
-    else
-        # Markdown - just copy
-        cp "$file_path" "$TMP_TEXT"
-    fi
-    
-    # Get file name for output folder
-    filename=$(basename "$file_path" | sed 's/\.[^.]*$//')
-    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-    OUTPUT_DIR=$WEBBOT_OUTPUT_DIR/${TIMESTAMP}_${filename}
-    mkdir -p "$OUTPUT_DIR"
-    
-    # Copy source file to output
-    cp "$file_path" "$OUTPUT_DIR/source.${ext}"
-    
-    # Save extracted text as data.json (wrap in JSON format for LLM analyzer)
-    filename_only=$(basename "$file_path")
-    python3 -c "
+        
+        # Save extracted text as data.json (wrap in JSON format for LLM analyzer)
+        filename_only=$(basename "$file_path")
+        python3 -c "
 import json
 with open('$TMP_TEXT', 'r', encoding='utf-8') as f:
     text = f.read()
@@ -1611,26 +1655,32 @@ data = {'source': '$filename_only', 'text': text}
 with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     json.dump(data, out)
 "
-    rm -f "$TMP_TEXT"
-    
-    echo -e "${CYAN}  Text extracted: $(wc -c < "$OUTPUT_DIR/data.json") bytes${NC}"
-    echo
-    echo -e "${CYAN}  [1/2] Analyzing with LLM (WebBot 2.0)...${NC}"
-    
-    # Run analysis on the extracted text
-    webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10
-    
-    if [ ! -f $WEBBOT_OUTPUT_DIR/analysis.json ]; then
-        echo -e "${RED}  ✗ Analysis failed${NC}"
-        read -p "  Press Enter to continue..."
-        show_main_menu
-        return
+        rm -f "$TMP_TEXT"
+        
+        echo -e "${CYAN}  Text extracted: $(wc -c < "$OUTPUT_DIR/data.json") bytes${NC}"
+        echo
+        echo -e "${CYAN}  [1/2] Analyzing with LLM (WebBot 2.0)...${NC}"
+        
+        # Run analysis on the extracted text
+        if ! webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10; then
+            echo -e "${RED}  ✗ Analysis failed${NC}"
+            read -p "  Press Enter to continue..."
+            show_main_menu
+            return
+        fi
+        
+        if [ ! -f "$WEBBOT_OUTPUT_DIR/analysis.json" ]; then
+            echo -e "${RED}  ✗ Analysis failed - no output found${NC}"
+            read -p "  Press Enter to continue..."
+            show_main_menu
+            return
+        fi
+        
+        cp "$WEBBOT_OUTPUT_DIR/analysis.json" "$OUTPUT_DIR/analysis.json"
+        
+        echo -e "${CYAN}  [2/2] Generating report...${NC}"
+        webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
     fi
-    
-    cp $WEBBOT_OUTPUT_DIR/analysis.json "$OUTPUT_DIR/analysis.json"
-    
-    echo -e "${CYAN}  [2/2] Generating report...${NC}"
-    webbot2 report markdown "$OUTPUT_DIR/analysis.json" --output "$OUTPUT_DIR/report.md" 2>&1 | tail -3
     
     # Add header to report
     {
@@ -1656,10 +1706,6 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo -e "${YELLOW}  R E P O R T                                      ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo
-    echo -e "${CYAN}  Source: ${GREEN}$file_path${NC}"
-    echo -e "${CYAN}  Type: ${GREEN}$ext${NC}"
-    echo -e "${CYAN}  Timestamp: ${GREEN}$TIMESTAMP${NC}"
     echo
     cat "$OUTPUT_DIR/report.md"
     echo
