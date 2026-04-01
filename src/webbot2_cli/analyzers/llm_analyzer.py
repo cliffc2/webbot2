@@ -9,14 +9,10 @@ import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
-<<<<<<< HEAD
 load_dotenv(".env")
-load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
-=======
 load_dotenv(os.path.expanduser("~/.webbot2.env"))
 load_dotenv(os.path.expanduser("~/webbot2/.env"))
-load_dotenv(".env")
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
 from .temporal_detector import detect_temporal_anomalies
 from webbot2_cli.utils import increment_counter
@@ -61,15 +57,19 @@ class LLMAnalyzer:
             temporal_anomalies = detect_temporal_anomalies(data)
             data["_temporal_anomalies_detected"] = temporal_anomalies
 
-        if not self.api_key:
-            return self._mock_analyze_webbot(data, temporal_anomalies)
-
-        prompt = self.system_prompt + "\n\n## Data to Analyze\n\n" + json.dumps(data, indent=2)
-
+        # Check for API keys - OpenRouter first (free tier), then OpenAI
         openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
         if openrouter_api_key:
             increment_counter("llm")
             return self._analyze_openrouter(data, openrouter_api_key)
+
+        if not self.api_key:
+            print("WARNING: No API key configured.")
+            print("  → Set OPENROUTER_API_KEY in .env for free tier")
+            print("  → Or set OPENAI_API_KEY for direct OpenAI access")
+            raise RuntimeError(
+                "No API key configured. Add OPENROUTER_API_KEY or OPENAI_API_KEY to your .env file"
+            )
 
         try:
             increment_counter("llm")
@@ -103,8 +103,8 @@ class LLMAnalyzer:
                 return {"raw_analysis": content, "error": "Failed to parse JSON"}
 
         except Exception as e:
-            print(f"LLM API error: {e}, trying mock analysis")
-            return self._mock_analyze(data)
+            print(f"ERROR: LLM API call failed: {e}")
+            raise
 
     def _analyze_openrouter(self, data: Dict[str, Any], api_key: str) -> Dict[str, Any]:
         """Analyze data using OpenRouter (free tier) with WebBot methodology."""
@@ -117,13 +117,8 @@ class LLMAnalyzer:
                 headers={
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
-<<<<<<< HEAD
-                    "HTTP-Referer": "https://predictive-ling-cli",
-                    "X-Title": "Predictive Linguistics CLI",
-=======
                     "HTTP-Referer": "https://webbot2-cli",
                     "X-Title": "WebBot 2.0 CLI",
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
                 },
                 json={
                     "model": model,
@@ -131,7 +126,7 @@ class LLMAnalyzer:
                         {"role": "system", "content": self.system_prompt},
                         {
                             "role": "user",
-                            "content": f"Analyze this data using WebBot 2.0 methodology. Return JSON with: temporal_anomalies, memetic_lifecycle, archetypes, metaphors, contradictions, future_leaks, cross_platform_patterns, summary.\n\nData:\n{json.dumps(data, indent=2)}",
+                            "content": f"Analyze this data using WebBot 2.0 methodology. Return ONLY valid JSON with: temporal_anomalies, memetic_lifecycle, archetypes, metaphors, contradictions, future_leaks, cross_platform_patterns, summary.\n\nData:\n{json.dumps(data, indent=2)}",
                         },
                     ],
                     "temperature": 0.7,
@@ -141,7 +136,18 @@ class LLMAnalyzer:
             )
             response.raise_for_status()
             result = response.json()
-            content = result["choices"][0]["message"]["content"]
+            message = result["choices"][0]["message"]
+            content = message.get("content")
+
+            # Handle reasoning models that may return content in reasoning field
+            if not content:
+                reasoning = message.get("reasoning", "")
+                if reasoning:
+                    content = reasoning
+                else:
+                    raise ValueError(
+                        f"No content in response. Full response: {json.dumps(result)[:500]}"
+                    )
 
             try:
                 analysis = json.loads(content)
@@ -149,9 +155,22 @@ class LLMAnalyzer:
             except json.JSONDecodeError:
                 return {"raw_analysis": content, "error": "Failed to parse JSON"}
 
+        except httpx.HTTPStatusError as e:
+            print(f"ERROR: OpenRouter API returned HTTP {e.response.status_code}")
+            if e.response.status_code == 401:
+                print("  → Invalid API key. Get a free key at https://openrouter.ai/keys")
+                print("  → Set OPENROUTER_API_KEY in your .env file")
+            elif e.response.status_code == 429:
+                print("  → Rate limit exceeded. Try again later or use a different model")
+            elif e.response.status_code == 403:
+                print("  → Access denied. Check if the model requires paid credits")
+            raise
+        except httpx.ConnectError as e:
+            print(f"ERROR: Cannot connect to OpenRouter API: {e}")
+            raise
         except Exception as e:
-            print(f"OpenRouter API error: {e}, using mock analysis")
-            return self._mock_analyze_webbot(data, [])
+            print(f"ERROR: OpenRouter API call failed: {e}")
+            raise
 
     def _mock_analyze_webbot(
         self, data: Dict[str, Any], temporal_anomalies: list

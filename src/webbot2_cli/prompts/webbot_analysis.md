@@ -1,14 +1,9 @@
 # WebBot 2.0 - Predictive Linguistics Analyzer
 
 ## Context
-You are analyzing text data from social media (Twitter, Reddit, YouTube) using the methodology of the original WebBot project (2009-2010). Your goal is to detect "time-displaced" content - ideas that are "ahead of their time" and may indicate future cultural, technological, or social shifts.
+You are analyzing text data from social media (Twitter, Reddit, YouTube) and web content using the methodology of the original WebBot project (2009-2010) and the Predictive Linguistics methodology pioneered by clif high (1993). Your goal is to detect "time-displaced" content - ideas that are "ahead of their time" and may indicate future cultural, technological, or social shifts.
 
-<<<<<<< HEAD
-## Core Concepts from Original WebBot
-
-### 1. Time-Displacement Meta-Tag
-=======
-This analysis follows the Predictive Linguistics methodology pioneered by clif high (1993), which aggregates text by emotional content to detect "leaks of future" information.
+This analysis aggregates text by emotional content to detect "leaks of future" information.
 
 ## Core Concepts from Original WebBot
 
@@ -37,17 +32,12 @@ Identify "detail words" - words in atypical contexts that may indicate "leakage 
 Words/phrases providing detail sets within larger context sets. Passed through processing along with emotional sums.
 
 ### 5. Time-Displacement Meta-Tag
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
 Find content that references future dates, events, or outcomes. These "future leaks" often appear as:
 - Casual mentions of future events as if already known
 - Predictions that seem to "know" what's coming
 - References to future technology or social changes
 
-<<<<<<< HEAD
-### 2. Memetic Algorithm
-=======
 ### 6. Memetic Algorithm
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
 Track how ideas spread, mutate, and evolve through the population. A meme's lifecycle has 6 stages:
 - **Stage 1 - Awareness**: First mentions, novelty, experimentation
 - **Stage 2 - Excitement**: Rapid spread, viral growth, peak attention
@@ -56,11 +46,7 @@ Track how ideas spread, mutate, and evolve through the population. A meme's life
 - **Stage 5 - Integration**: Normalization, accepted as status quo
 - **Stage 6 - Nostalgia**: Fond remembrance, "remember when"
 
-<<<<<<< HEAD
-### 3. Archetypes (from Jungian Collective Unconscious)
-=======
 ### 7. Archetypes (from Jungian Collective Unconscious)
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
 Recurring character/system patterns that predict how ideas will spread:
 - **The Catalyst**: Initiates change, sparks movements
 - **The Herald**: Brings news of what's coming
@@ -75,29 +61,6 @@ Recurring character/system patterns that predict how ideas will spread:
 
 Analyze the provided data and identify:
 
-<<<<<<< HEAD
-### 1. Temporal Anomalies (Time-Displacement)
-Find content that references future dates/events, predictive statements, or "premature" knowledge.
-
-### 2. Memetic Lifecycle Stage
-For each emerging pattern, determine which stage of the lifecycle it's in (1-6).
-
-### 3. Archetypes Present
-Identify which archetypes are appearing in the discourse.
-
-### 4. Metaphors & Language Patterns
-Track the spreading language - new metaphors, frame shifts, linguistic evolution.
-
-### 5. Contradictions & Cognitive Dissonance
-Find paradoxes in mainstream narratives that may signal upcoming shifts.
-
-### 6. Future Leak Indicators
-High-confidence indicators of possible future developments.
-
-### 7. Cross-Platform Correlation
-Note if the same patterns appear across multiple platforms (Twitter, Reddit, YouTube).
-
-=======
 ### 1. Entity Classification
 Categorize content into relevant entities (GlobalPop, Markets, Terra, SpaceGoatFarts, etc.)
 
@@ -131,66 +94,64 @@ Note if the same patterns appear across multiple platforms (Twitter, Reddit, You
 ### 11. Temporal Echoes
 Find linguistic echoes across time - same meme reappearing with larger scope/intensity
 
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
 ## Output Format (JSON)
+
+Return ONLY valid JSON with the following structure:
 
 ```json
 {
-<<<<<<< HEAD
-=======
   "entities": [
     {
-      "name": "string (GlobalPop|Markets|Terra|SpaceGoatFarts|USAPop|NationPop)",
-      "weight": float,
-      "key_themes": ["string"]
+      "name": "GlobalPop|Markets|Terra|SpaceGoatFarts|USAPop|NationPop",
+      "weight": 0.8,
+      "key_themes": ["theme1", "theme2"]
     }
   ],
   "timeframes": [
     {
       "type": "IM|ST|LT",
-      "label": "string (e.g., '3-6 months')",
-      "confidence": float,
-      "indicators": ["string"]
+      "label": "3-6 months",
+      "confidence": 0.75,
+      "indicators": ["indicator1"]
     }
   ],
   "detail_words": [
     {
       "word": "string",
       "unexpected_context": "string",
-      "predictive_score": float,
+      "predictive_score": 0.8,
       "emergence_timeline": "IM|ST|LT"
     }
   ],
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
   "temporal_anomalies": [
     {
       "text": "string",
       "future_reference": "string (what future date/event mentioned)",
-      "confidence": float,
+      "confidence": 0.7,
       "platform": "string"
     }
   ],
   "memetic_lifecycle": [
     {
       "pattern": "string",
-      "stage": int (1-6),
-      "stage_name": "string (Awareness|Excitement|Momentum|Critique|Integration|Nostalgia)",
+      "stage": 2,
+      "stage_name": "Awareness|Excitement|Momentum|Critique|Integration|Nostalgia",
       "evidence": "string"
     }
   ],
   "archetypes": [
     {
-      "name": "string (Catalyst|Herald|Shapeshifter|Shadow|Wise Elder|Trickster|Innocent|Warrior)",
-      "frequency": int,
-      "examples": ["string"]
+      "name": "Catalyst|Herald|Shapeshifter|Shadow|Wise Elder|Trickster|Innocent|Warrior",
+      "frequency": 28,
+      "examples": ["example1", "example2"]
     }
   ],
   "metaphors": [
     {
       "term": "string",
       "context": "string",
-      "spread_score": float,
-      "is_emerging": boolean
+      "spread_score": 0.7,
+      "is_emerging": true
     }
   ],
   "contradictions": [
@@ -203,15 +164,9 @@ Find linguistic echoes across time - same meme reappearing with larger scope/int
   "future_leaks": [
     {
       "indicator": "string",
-      "confidence": float,
-<<<<<<< HEAD
-      "timeline": "string (e.g., '3-6 months', '1-2 years')",
-      "supporting_evidence": ["string"]
-    }
-  ],
-=======
-      "timeline": "string (e.g., '3-6 months', 'IM/ST/LT')",
-      "supporting_evidence": ["string"]
+      "confidence": 0.75,
+      "timeline": "3-6 months or IM/ST/LT",
+      "supporting_evidence": ["evidence1"]
     }
   ],
   "temporal_echoes": [
@@ -222,19 +177,14 @@ Find linguistic echoes across time - same meme reappearing with larger scope/int
       "intensity_change": "increasing|decreasing|stable"
     }
   ],
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
   "cross_platform_patterns": [
     {
       "pattern": "string",
-      "platforms": ["string"],
-      "synchronization": "string (synchronized|emerging|isolated)"
+      "platforms": ["twitter", "reddit"],
+      "synchronization": "synchronized|emerging|isolated"
     }
   ],
-<<<<<<< HEAD
-  "summary": "string (overall assessment)"
-=======
-  "summary": "string (overall assessment including entity distribution and timeframe predictions)"
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00
+  "summary": "Overall assessment including entity distribution and timeframe predictions"
 }
 ```
 
@@ -245,9 +195,6 @@ Find linguistic echoes across time - same meme reappearing with larger scope/int
 - Look for the "herald" archetype - they often signal what's coming
 - Pay attention to Stage 4 (Critique) - it's often a precursor to major shifts
 - Rate confidence on scale of 0.0 to 1.0
-<<<<<<< HEAD
-=======
 - Detail words in unexpected contexts are highly predictive - flag them
 - Assign prediction timeframes (IM/ST/LT) based on temporal language indicators
 - Entity categorization provides context for cross-pattern analysis
->>>>>>> 1dfd559fb66e8239b7f678417e4b9877c4544b00

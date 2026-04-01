@@ -55,7 +55,7 @@ class MarkdownReporter:
         lines.append("─" * 78)
         lines.append("SUMMARY")
         lines.append("─" * 78)
-        lines.append(self._wrap_text(summary, 76))
+        lines.extend(self._wrap_text(summary, 76))
         lines.append("")
 
         # Temporal Anomalies
@@ -247,7 +247,9 @@ class MarkdownReporter:
             examples = a.get("examples", [])[:2]
             lines.append(f"  {emoji} {name} (frequency: {freq})")
             for ex in examples:
-                lines.append(f'      "{ex[:60]}..."')
+                if isinstance(ex, list):
+                    ex = ", ".join(str(e) for e in ex)
+                lines.append(f'      "{str(ex)[:60]}..."')
         return lines
 
     def _format_entities(self, entities: list) -> List[str]:

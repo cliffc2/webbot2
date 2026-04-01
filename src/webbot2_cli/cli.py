@@ -12,6 +12,7 @@ load_dotenv()
 load_dotenv(os.path.expanduser("~/.webbot2.env"))
 load_dotenv(os.path.expanduser("~/webbot2/.env"))
 load_dotenv(".env")
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
 
 from webbot2_cli.scrapers.twitter import TwitterScraper
 from webbot2_cli.scrapers.reddit import RedditScraper
@@ -25,8 +26,12 @@ from webbot2_cli.utils import print_summary, reset_counts
 
 
 def get_output_dir() -> Path:
-    """Get or create the output directory."""
-    output_dir = Path.home() / ".webbot2" / "output"
+    """Get or create the output directory - checks env var first."""
+    if "WEBBOT_OUTPUT_DIR" in os.environ:
+        output_dir = Path(os.environ["WEBBOT_OUTPUT_DIR"])
+    else:
+        # Default to ./reports relative to script location
+        output_dir = Path(__file__).parent.parent.parent / "reports"
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
 
@@ -150,7 +155,19 @@ def analyze_llm(input_file: str, model: str, prompt_type: str, output: Optional[
     click.echo(f"Analyzing {input_file} with prompt: {prompt_type}")
     data = json.loads(Path(input_file).read_text())
     analyzer = LLMAnalyzer(model=model, prompt_type=prompt_type)
-    results = analyzer.analyze(data)
+    try:
+        results = analyzer.analyze(data)
+    except RuntimeError as e:
+        click.echo(f"\nERROR: {e}", err=True)
+        click.echo("To fix:", err=True)
+        click.echo("  1. Get a free API key at https://openrouter.ai/keys", err=True)
+        click.echo("  2. Add to your .env file: OPENROUTER_API_KEY=sk-or-v1-...", err=True)
+        click.echo("  3. Or set OPENAI_API_KEY for direct OpenAI access", err=True)
+        raise SystemExit(1)
+    except Exception as e:
+        click.echo(f"\nERROR: Analysis failed: {e}", err=True)
+        click.echo("Check your API key and network connection.", err=True)
+        raise SystemExit(1)
 
     if output:
         Path(output).write_text(json.dumps(results, indent=2))
@@ -302,6 +319,11 @@ def run_all(query: str, limit: int, model: str):
     click.echo("Pipeline Complete!")
     click.echo(f"Output directory: {output_dir}")
     click.echo("=" * 50)
+
+    # Clean up temp files
+    for tmp_file in [twitter_file, reddit_file, youtube_file, news_file]:
+        if tmp_file.exists():
+            tmp_file.unlink()
 
     print_summary()
 
