@@ -18,7 +18,7 @@ Use the webbot2 CLI tool to run the analysis pipeline.
 
 ## Commands
 
-- `/scrape <platform> <query>` - Scrape data from a platform (reddit, news)
+- `/scrape <url>` - Scrape any URL using Scrapy
 - `/analyze <file>` - Analyze data with LLM using webbot methodology
 - `/report <file>` - Generate markdown report from analysis
 - `/status` - Check output files
@@ -26,18 +26,29 @@ Use the webbot2 CLI tool to run the analysis pipeline.
 ## How It Works
 
 The CLI uses free sources:
+- **Web Scraper**: Scrapy (any URL)
 - **Reddit**: Old Reddit (old.reddit.com)
 - **News**: Currents API, NewsAPI, RSS feeds
 
 For LLM analysis:
 - **OpenRouter** (recommended): Free tier at https://openrouter.ai
+- Default model: `qwen/qwen3.6-plus-preview:free`
 
 ## Environment
 
-Optional API keys in `~/.webbot2.env`:
+API keys in `.env` (project directory):
 - `OPENROUTER_API_KEY` - For OpenRouter free LLM analysis
+- `OPENROUTER_MODEL` - Model to use (default: qwen/qwen3.6-plus-preview:free)
 - `CURRENTS_API_KEY` - News API (600/day)
 - `NEWSAPI_KEY` - News API (100/day)
+
+## Output
+
+Results saved to `./reports/`:
+- `reports/<timestamp>_<topic>/data.json` - Scraped content
+- `reports/<timestamp>_<topic>/analysis.json` - LLM analysis
+- `reports/<timestamp>_<topic>/report.md` - Markdown report
+- `reports/latest` → symlink to most recent run
 
 ## Output Interpretation
 
@@ -46,3 +57,5 @@ When analyzing findings:
 - Confidence scores > 0.7 are high-priority
 - Memetic lifecycle: Awareness → Excitement → Momentum → Critique → Integration → Nostalgia
 - Archetypes: Catalyst, Herald, Shapeshifter, Shadow, Wise Elder, Trickster, Innocent, Warrior
+- Temporal echoes: recurring patterns with intensity changes (increasing/decreasing/stable)
+- Detail words: words in unusual contexts with high predictive potential
