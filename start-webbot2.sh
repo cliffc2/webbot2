@@ -1225,6 +1225,9 @@ analyze_local_file() {
     echo -ne "${GREEN}  > File path: ${NC}"
     read -r file_path
     
+    # Unescape backslash-escaped spaces from drag-and-drop
+    file_path="${file_path//\\ / }"
+    
     # Expand ~ to home directory
     file_path="${file_path/#\~/$HOME}"
     
@@ -1278,7 +1281,7 @@ print('yes' if has_analysis else 'no')
         else
             echo -e "${CYAN}  Contains raw data - running LLM analysis...${NC}"
             cp "$file_path" "$OUTPUT_DIR/data.json"
-            echo -e "${CYAN}  [1/2] Analyzing with LLM (WebBot 2.0)...${NC}"
+            echo -e "${CYAN}  [1/2] Analyzing with LLM (openrouter free tier)...${NC}"
             
             if ! webbot2 analyze llm "$OUTPUT_DIR/data.json" --prompt-type webbot 2>&1 | tail -10; then
                 echo -e "${RED}  ✗ Analysis failed${NC}"
