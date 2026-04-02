@@ -48,21 +48,22 @@ show_banner() {
     echo "   \`~     \`\`        \"88888%    \`%888*%\"    \`%888*%\"      'Y\"         'S\`\"     C:  \"cliffc2  "
     echo "                      //\"'        \`\`          \`\`                              \"\"    \"**\`  "
     echo
-    
-    echo -e "${GREEN}       Predictive Linguistics - Webbot2 CLI${NC}"
-    echo -e "${YELLOW}       Inspired by @clif_high & spirittechie${NC}"
-}
+    echo -e "${GREEN}             Predictive Linguistics - Webbot2 CLI${NC}"
+    echo -e "${YELLOW}             Inspired by @clif_high & spirittechie${NC}"
+    echo -e "${YELLOW}             Reversed engineered by cliffc2${NC}"
+}   
 
 show_main_menu() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              M A I N   M E N U                       ${NC}"
+    echo -e "${YELLOW}                      M A I N   M E N U                       ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
-    echo "  [1] Webbot2 Scraper      (Scrapy - any URL → JSON data → LLM analysis)"
+    echo
+    echo "  [1] Webbot2 Scraper      (Scrapy - any URL (text) → JSON data → LLM analysis)"
     echo "  [2] Analyze Local File   (Drag & Drop PDF/MD/JSON → Report)"
     echo "  [3] Run Webbot2          (AutoWebBot - Scrape → Analyze → Report)"
-    echo "  [4] View Results         (Output folder)"
+    echo "  [4] View Report          (Report folder)"
     echo "  [5] Configuration        (API keys, settings)"
     echo "  [6] Timeline Tracker     (BETA TEST - batch analyze → timeline view)"
     echo "  [0] Exit"
@@ -168,7 +169,7 @@ run_and_display() {
 run_full_pipeline() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              R U N   P I P E L I N E                       ${NC}"
+    echo -e "${YELLOW}              R U N   A U T O - W E B B O T 2      ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     echo -e "${CYAN}  Select:${NC}"
@@ -206,7 +207,7 @@ run_full_pipeline() {
 # analyze_data() {
 #     show_banner
 #     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-#     echo -e "${YELLOW}              A N A L Y Z E   D A T A                        ${NC}"
+#     echo -e "${YELLOW}                A N A L Y Z E   D A T A                        ${NC}"
 #     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
 #     echo
 #     
@@ -318,7 +319,7 @@ run_full_pipeline() {
 # generate_reports() {
 #     show_banner
 #     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-#     echo -e "${YELLOW}              G E N E R A T E   R E P O R T S               ${NC}"
+#     echo -e "${YELLOW}               G E N E R A T E   R E P O R T S               ${NC}"
 #     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
 #     echo
 #     echo -e "${CYAN}    Select report format:                                  ${CYAN}│${NC}"
@@ -439,7 +440,7 @@ run_full_pipeline() {
 view_output() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}             V I E W   O U T P U T   F I L E S          ${NC}"
+    echo -e "${YELLOW}                 V I E W   O U T P U T   F I L E S          ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
@@ -523,100 +524,119 @@ view_output() {
 configuration() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              C O N F I G U R A T I O N                  ${NC}"
+    echo -e "${YELLOW}                    C O N F I G U R A T I O N                  ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
+    local env_file="$(pwd)/.env"
+    
     echo 
-    echo -e "${CYAN}  ${NC}  Current Settings:                                      ${CYAN}│${NC}"
+    echo -e "${CYAN}  Current Settings:${NC}"
     echo 
     
-    if [ -f ~/.webbot2.env ]; then
-        while IFS= read -r line; do
-            echo -e "${CYAN}  │${NC}    $line${CYAN}                                          │${NC}"
-        done < ~/.webbot2.env
+    if [ -f "$env_file" ]; then
+        grep -E "^(OPENROUTER_API_KEY|OPENROUTER_MODEL|OPENAI_API_KEY|CURRENTS_API_KEY|NEWSAPI_KEY)" "$env_file" 2>/dev/null | while IFS= read -r line; do
+            key="${line%%=*}"
+            val="${line#*=}"
+            if [ "$key" = "OPENROUTER_API_KEY" ] || [ "$key" = "OPENAI_API_KEY" ]; then
+                masked="${val:0:10}...${val: -5}"
+                echo -e "    ${CYAN}$key${NC}=$masked"
+            else
+                echo -e "    ${CYAN}$key${NC}=$val"
+            fi
+        done
     else
-        echo "       No config found (run setup)                          "
+        echo -e "${RED}    No .env file found${NC}"
     fi
     echo 
-    echo
     
     echo 
     echo  "  Options:                                            "
     echo  "                                                      "
-    echo  "    [1] ▶ Set OpenRouter API Key                     "
-    echo  "    [2] ▶ Set default LLM model                     "
-    echo  "    [3] ▶ View available free models                 "
-    echo  "    [4] ▶ Test API connection                        "
-    echo  "    [0] ▶ Back to main menu                          "
+    echo  "    [1] Set OpenRouter API Key                        "
+    echo  "    [2] Set default LLM model                         "
+    echo  "    [3] View available free models                    "
+    echo  "    [4] Test API connection                           "
+    echo  "    [0] Back to main menu                             "
     echo 
     echo
-    echo -ne "${GREEN}  ➜ Select option [0-4]: ${NC}"
+    echo -ne "${GREEN}  Select option [0-4]: ${NC}"
     read -r choice
     
     while [[ ! "$choice" =~ ^[0-4]$ ]]; do
-        echo -e "${RED}  ✗ Invalid. Enter 0-4:${NC}"
-        echo -ne "${GREEN}  ➜ Select option [0-4]: ${NC}"
+        echo -e "${RED}  Invalid. Enter 0-4:${NC}"
+        echo -ne "${GREEN}  Select option [0-4]: ${NC}"
         read -r choice
     done
     
     case $choice in
         1)
-            echo -e "\n${CYAN}Enter your OpenRouter API key:${NC}"
-            echo "(Get free key at https://openrouter.ai/keys)"
+            echo
+            echo -e "${CYAN}  Enter your OpenRouter API key:${NC}"
+            echo -e "  (Get free key at https://openrouter.ai/keys)"
+            echo -ne "  > "
             read -r api_key
             if [ -n "$api_key" ]; then
-                echo "OPENROUTER_API_KEY=$api_key" > ~/.webbot2.env
-                echo -e "${GREEN}API key saved!${NC}"
+                if [ -f "$env_file" ] && grep -q "^OPENROUTER_API_KEY=" "$env_file"; then
+                    sed -i '' "s|^OPENROUTER_API_KEY=.*|OPENROUTER_API_KEY=$api_key|" "$env_file"
+                else
+                    echo "OPENROUTER_API_KEY=$api_key" >> "$env_file"
+                fi
+                echo -e "\n${GREEN}  API key saved to .env${NC}"
+            else
+                echo -e "\n${RED}  No key entered, nothing saved${NC}"
             fi
             ;;
         2)
-            echo -e "\n${CYAN}Available free models:${NC}"
-            echo "1) nvidia/nemotron-3-super-120b-a12b:free"
-            echo "2) minimax/minimax-m2.5:free"
-            echo "3) openrouter/free"
-            echo "4) google/gemma-3-4b-it:free"
-            echo -ne "${GREEN}Select default [1-4]: ${NC}"
+            echo
+            echo -e "${CYAN}  Available free models:${NC}"
+            echo "    1) qwen/qwen3.6-plus-preview:free (Recommended)"
+            echo "    2) minimax/minimax-m2.5:free (Fast)"
+            echo "    3) nvidia/nemotron-3-super-120b-a12b:free (Largest)"
+            echo "    4) google/gemma-3-4b-it:free (Fastest, may be rate-limited)"
+            echo -ne "\n${GREEN}  Select default [1-4]: ${NC}"
             read -r model_choice
             case $model_choice in
-                1) model="nvidia/nemotron-3-super-120b-a12b:free" ;;
+                1) model="qwen/qwen3.6-plus-preview:free" ;;
                 2) model="minimax/minimax-m2.5:free" ;;
-                3) model="openrouter/free" ;;
+                3) model="nvidia/nemotron-3-super-120b-a12b:free" ;;
                 4) model="google/gemma-3-4b-it:free" ;;
-                *) model="nvidia/nemotron-3-super-120b-a12b:free" ;;
+                *) model="qwen/qwen3.6-plus-preview:free" ;;
             esac
-            echo "OPENROUTER_MODEL=$model" >> ~/.webbot2.env
-            echo -e "${GREEN}Default model set to: $model${NC}"
+            if [ -f "$env_file" ] && grep -q "^OPENROUTER_MODEL=" "$env_file"; then
+                sed -i '' "s|^OPENROUTER_MODEL=.*|OPENROUTER_MODEL=$model|" "$env_file"
+            else
+                echo "OPENROUTER_MODEL=$model" >> "$env_file"
+            fi
+            echo -e "\n${GREEN}  Default model set to: $model${NC}"
             ;;
         3)
-            echo -e "\n${CYAN}Recommended free models:${NC}"
-            echo "1) qwen/qwen3.6-plus-preview:free - Recommended"
-            echo "2) minimax/minimax-m2.5:free - Fast"
-            echo "3) nvidia/nemotron-3-super-120b-a12b:free - Largest"
-            echo "4) google/gemma-3-4b-it:free - Fastest (may be rate-limited)"
+            echo
+            echo -e "${CYAN}  Recommended free models:${NC}"
+            echo "    1) qwen/qwen3.6-plus-preview:free - Recommended"
+            echo "    2) minimax/minimax-m2.5:free - Fast"
+            echo "    3) nvidia/nemotron-3-super-120b-a12b:free - Largest"
+            echo "    4) google/gemma-3-4b-it:free - Fastest (may be rate-limited)"
             ;;
         4)
-            echo -e "\n${GREEN}Testing API key...${NC}"
-            if [ -f ~/.webbot2.env ]; then
-                source ~/.webbot2.env
-                if [ -n "$OPENROUTER_API_KEY" ]; then
-                    curl -s "https://openrouter.ai/api/v1/models" -H "Authorization: Bearer $OPENROUTER_API_KEY" | python3 -c "import json,sys; d=json.load(sys.stdin); print('✓ API key valid!' if 'data' in d else '✗ Invalid key')" 2>/dev/null || echo "✗ Connection error"
+            echo
+            echo -e "${GREEN}  Testing API connection...${NC}"
+            local test_key=""
+            if [ -f "$env_file" ]; then
+                test_key=$(grep "^OPENROUTER_API_KEY=" "$env_file" | cut -d= -f2-)
+            fi
+            if [ -n "$test_key" ]; then
+                local result
+                result=$(curl -s -o /dev/null -w "%{http_code}" "https://openrouter.ai/api/v1/auth/key" -H "Authorization: Bearer $test_key")
+                if [ "$result" = "200" ]; then
+                    echo -e "\n${GREEN}  API key valid! Connection successful.${NC}"
                 else
-                    echo "✗ No API key found"
+                    echo -e "\n${RED}  API key invalid or connection failed (HTTP $result)${NC}"
                 fi
             else
-                echo "✗ Config file not found"
+                echo -e "\n${RED}  No OPENROUTER_API_KEY found in .env${NC}"
+                echo -e "  Use option [1] to set your API key"
             fi
-            ;;
-        5)
-            echo -e "\n${CYAN}Enter alias name:${NC}"
-            read -r alias_name
-            echo -e "${CYAN}Enter query:${NC}"
-            read -r alias_query
-            echo -e "${CYAN}Enter limit:${NC}"
-            read -r alias_limit
-            echo "$alias_name|$alias_query|$alias_limit" >> ~/.webbot2_aliases
-            echo -e "${GREEN}Alias saved!${NC}"
             ;;
         0)
             show_main_menu
@@ -624,7 +644,7 @@ configuration() {
     esac
     
     echo
-    read -p "Press Enter to continue..."
+    read -p "  Press Enter to continue..."
     configuration
 }
 
@@ -717,8 +737,8 @@ configuration() {
 timeline_tracker() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}         T I M E L I N E   T R A C K E R                   ${NC}"
-    echo -e "${YELLOW}         (Batch analyze ALTA reports → timeline)            ${NC}"
+    echo -e "${YELLOW}             T I M E L I N E   T R A C K E R                   ${NC}"
+    echo -e "${YELLOW}            (Batch analyze ALTA reports → timeline)            ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
@@ -770,8 +790,8 @@ timeline_tracker() {
     if [ "$mode" = "3" ]; then
         show_banner
         echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-        echo -e "${YELLOW}         C O R R E L A T I O N   G R A P H                 ${NC}"
-        echo -e "${YELLOW}         (Build relational graph from predictions)          ${NC}"
+        echo -e "${YELLOW}             C O R R E L A T I O N   G R A P H                 ${NC}"
+        echo -e "${YELLOW}            (Build relational graph from predictions)          ${NC}"
         echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
         echo
         
@@ -1119,7 +1139,7 @@ ENDPY
     # Display timeline
     echo
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}               T I M E L I N E   R E P O R T                  ${NC}"
+    echo -e "${YELLOW}                T I M E L I N E   R E P O R T                  ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     echo -e "${CYAN}  Current Year: ${GREEN}$CURRENT_YEAR${NC}"
@@ -1212,8 +1232,8 @@ print(f'Total: {len(predictions)} | Past: {len(past)} | Now: {len(now)} | Future
 analyze_local_file() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}         A N A L Y Z E   L O C A L   F I L E               ${NC}"
-    echo -e "${YELLOW}              (PDF, Markdown, or JSON files)                  ${NC}"
+    echo -e "${YELLOW}             A N A L Y Z E   L O C A L   F I L E               ${NC}"
+    echo -e "${YELLOW}               (PDF, Markdown, or JSON files)                  ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
@@ -1398,7 +1418,7 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
     
     # Show the report
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}  R E P O R T                                      ${NC}"
+    echo -e "${YELLOW}              R E P O R T                                      ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     cat "$OUTPUT_DIR/report.md"
@@ -1410,8 +1430,8 @@ with open('$OUTPUT_DIR/data.json', 'w', encoding='utf-8') as out:
 web_scraper_menu() {
     show_banner
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${YELLOW}              W E B   S C R A P E R                        ${NC}"
-    echo -e "${YELLOW}              (Scrapy - fetch any URL)                     ${NC}"
+    echo -e "${YELLOW}                  W E B   S C R A P E R                        ${NC}"
+    echo -e "${YELLOW}                  (Scrapy - fetch any URL)                     ${NC}"
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     echo -e "${CYAN}  Select mode:${NC}"
@@ -1465,7 +1485,7 @@ web_scraper_menu() {
                 SELECTED_DIR="$WEBBOT_OUTPUT_DIR/${folders[$idx]}"
                 echo
                 echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-                echo -e "${YELLOW}  R E P O R T: ${folders[$idx]}${NC}"
+                echo -e "${YELLOW}          R E P O R T: ${folders[$idx]}${NC}"
                 echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
                 echo
                 cat "$SELECTED_DIR/report.md"
@@ -1524,7 +1544,7 @@ web_scraper_menu() {
                 
                 echo
                 echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-                echo -e "${YELLOW}  R E P O R T                                      ${NC}"
+                echo -e "${YELLOW}              R E P O R T                                      ${NC}"
                 echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
                 echo
                 cat "$SELECTED_DIR/report.md"
@@ -1541,7 +1561,7 @@ web_scraper_menu() {
         # Presets
         show_banner
         echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-        echo -e "${YELLOW}              Q U I C K   P R E S E T S                     ${NC}"
+        echo -e "${YELLOW}                 Q U I C K   P R E S E T S                     ${NC}"
         echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
         echo
         echo -e "${CYAN}  Select a site:${NC}"
@@ -1753,7 +1773,7 @@ PYEOF
                 
                 echo
                 echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
-                echo -e "${YELLOW}  R E P O R T                                      ${NC}"
+                echo -e "${YELLOW}              R E P O R T                                      ${NC}"
                 echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
                 echo
                 cat "$OUTPUT_DIR/report.md"
