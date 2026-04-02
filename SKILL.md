@@ -29,6 +29,7 @@ The CLI uses free sources:
 - **Web Scraper**: Scrapy (any URL)
 - **Reddit**: Old Reddit (old.reddit.com)
 - **News**: Currents API, NewsAPI, RSS feeds
+- **Local Files**: PDF (auto text extraction), Markdown, JSON (drag & drop from Finder)
 
 For LLM analysis:
 - **OpenRouter** (recommended): Free tier at https://openrouter.ai

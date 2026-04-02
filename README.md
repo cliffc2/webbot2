@@ -29,6 +29,18 @@ nano .env
 
 ---
 
+## Project Stats
+
+- **Lines of code**: ~5,400
+- **Languages**: Bash, Python
+- **Structure**:
+  - `start-webbot2.sh` — Main interactive menu (~1,770 lines)
+  - `src/webbot2_cli/` — Python CLI package (scrapers, analyzers, reporting)
+  - `reports/` — Output folder (not tracked, examples may appear)
+  - `docs/` — Reference PDFs and documents (not tracked)
+
+---
+
 ## Main Menu
 
 ```
@@ -52,6 +64,12 @@ nano .env
 - Quick presets: Hacker News, Reddit, BBC, Wired, Ars Technica
 - Extract all links from a page
 - View history of previous scrapes
+
+### Analyze Local File (Option 2)
+- Drag & drop PDF, Markdown, or JSON files from Finder
+- PDFs: auto-extract text → LLM analysis → report
+- Markdown: direct LLM analysis → report
+- JSON: auto-detect raw data vs pre-analyzed, generate report or re-analyze
 
 ### News Sources
 - **Currents API** - 600 requests/day (recommended)
