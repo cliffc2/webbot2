@@ -44,14 +44,12 @@ nano .env
 ## Main Menu
 
 ```
-  [1] Web Scraper        (Scrapy - fetch any URL)
-  [2] Analyze Local File (PDF/MD/JSON → report)
-  [3] Quick Analysis     (Currents API → analyze → report)
-  [4] NewsAPI Analysis   (NewsAPI → analyze → report)
-  [5] Run Pipeline       (choose platforms)
-  [6] View Results       (output folder)
-  [7] Configuration      (API keys, settings)
-  [8] Timeline Tracker   (batch analyze → timeline view)
+  [1] Webbot2 Scraper      (Scrapy - any URL → JSON data → LLM analysis)
+  [2] Analyze Local File   (Drag & Drop PDF/MD/JSON → Report)
+  [3] Run Webbot2          (AutoWebBot - Scrape → Analyze → Report)
+  [4] View Results         (Output folder)
+  [5] Configuration        (API keys, settings)
+  [6] Timeline Tracker     (BETA TEST - batch analyze → timeline view)
   [0] Exit
 ```
 
