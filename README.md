@@ -71,11 +71,6 @@ nano .env
 - Markdown: direct LLM analysis → report
 - JSON: auto-detect raw data vs pre-analyzed, generate report or re-analyze
 
-### News Sources
-- **Currents API** - 600 requests/day (recommended)
-- **NewsAPI** - 100 requests/day
-- RSS feeds fallback (BBC, Reuters, AP, NPR)
-
 ### LLM Analysis (OpenRouter)
 Free tier models available:
 - `qwen/qwen3.6-plus-preview:free` (recommended - balanced)
