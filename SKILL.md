@@ -33,13 +33,13 @@ The CLI uses free sources:
 
 For LLM analysis:
 - **OpenRouter** (recommended): Free tier at https://openrouter.ai
-- Default model: `qwen/qwen3.6-plus-preview:free`
+- Default model: `qwen/qwen3.6-plus:free`
 
 ## Environment
 
 API keys in `.env` (project directory):
 - `OPENROUTER_API_KEY` - For OpenRouter free LLM analysis
-- `OPENROUTER_MODEL` - Model to use (default: qwen/qwen3.6-plus-preview:free)
+- `OPENROUTER_MODEL` - Model to use (default: qwen/qwen3.6-plus:free)
 - `CURRENTS_API_KEY` - News API (600/day)
 - `NEWSAPI_KEY` - News API (100/day)
 

@@ -2,6 +2,7 @@
 
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any, Dict
 
@@ -108,7 +109,9 @@ class LLMAnalyzer:
 
     def _analyze_openrouter(self, data: Dict[str, Any], api_key: str) -> Dict[str, Any]:
         """Analyze data using OpenRouter (free tier) with WebBot methodology."""
-        model = os.getenv("OPENROUTER_MODEL", "qwen/qwen3.6-plus-preview:free")
+        model = os.getenv("OPENROUTER_MODEL", "qwen/qwen3.6-plus:free")
+        cooldown = float(os.getenv("RATE_LIMIT_COOLDOWN", "2"))
+        time.sleep(cooldown)
 
         try:
             increment_counter("llm")
@@ -160,8 +163,15 @@ class LLMAnalyzer:
             if e.response.status_code == 401:
                 print("  → Invalid API key. Get a free key at https://openrouter.ai/keys")
                 print("  → Set OPENROUTER_API_KEY in your .env file")
+            elif e.response.status_code == 404:
+                print(f"  → Model '{model}' not found or no longer available")
+                print("  → Run config option [3] to see current free models")
+                print("  → Update OPENROUTER_MODEL in your .env file")
             elif e.response.status_code == 429:
-                print("  → Rate limit exceeded. Try again later or use a different model")
+                cooldown = os.getenv("RATE_LIMIT_COOLDOWN", "2")
+                print(f"  → Rate limit exceeded. Free tier has strict limits.")
+                print(f"  → Wait {cooldown}s between requests (set RATE_LIMIT_COOLDOWN in .env)")
+                print("  → Try a smaller content limit when scraping")
             elif e.response.status_code == 403:
                 print("  → Access denied. Check if the model requires paid credits")
             raise

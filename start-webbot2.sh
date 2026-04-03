@@ -555,17 +555,18 @@ configuration() {
     echo  "                                                      "
     echo  "    [1] Set OpenRouter API Key                        "
     echo  "    [2] Set default LLM model                         "
-    echo  "    [3] View available free models                    "
-    echo  "    [4] Test API connection                           "
+    echo  "    [3] Set rate limit cooldown                       "
+    echo  "    [4] View available free models                    "
+    echo  "    [5] Test API connection                           "
     echo  "    [0] Back to main menu                             "
     echo 
     echo
-    echo -ne "${GREEN}  Select option [0-4]: ${NC}"
+    echo -ne "${GREEN}  Select option [0-5]: ${NC}"
     read -r choice
     
-    while [[ ! "$choice" =~ ^[0-4]$ ]]; do
-        echo -e "${RED}  Invalid. Enter 0-4:${NC}"
-        echo -ne "${GREEN}  Select option [0-4]: ${NC}"
+    while [[ ! "$choice" =~ ^[0-5]$ ]]; do
+        echo -e "${RED}  Invalid. Enter 0-5:${NC}"
+        echo -ne "${GREEN}  Select option [0-5]: ${NC}"
         read -r choice
     done
     
@@ -590,18 +591,18 @@ configuration() {
         2)
             echo
             echo -e "${CYAN}  Available free models:${NC}"
-            echo "    1) qwen/qwen3.6-plus-preview:free (Recommended)"
+            echo "    1) qwen/qwen3.6-plus:free (Recommended)"
             echo "    2) minimax/minimax-m2.5:free (Fast)"
             echo "    3) nvidia/nemotron-3-super-120b-a12b:free (Largest)"
             echo "    4) google/gemma-3-4b-it:free (Fastest, may be rate-limited)"
             echo -ne "\n${GREEN}  Select default [1-4]: ${NC}"
             read -r model_choice
             case $model_choice in
-                1) model="qwen/qwen3.6-plus-preview:free" ;;
+                1) model="qwen/qwen3.6-plus:free" ;;
                 2) model="minimax/minimax-m2.5:free" ;;
                 3) model="nvidia/nemotron-3-super-120b-a12b:free" ;;
                 4) model="google/gemma-3-4b-it:free" ;;
-                *) model="qwen/qwen3.6-plus-preview:free" ;;
+                *) model="qwen/qwen3.6-plus:free" ;;
             esac
             if [ -f "$env_file" ] && grep -q "^OPENROUTER_MODEL=" "$env_file"; then
                 sed -i '' "s|^OPENROUTER_MODEL=.*|OPENROUTER_MODEL=$model|" "$env_file"
@@ -612,13 +613,40 @@ configuration() {
             ;;
         3)
             echo
+            echo -e "${CYAN}  Set rate limit cooldown (seconds between API calls):${NC}"
+            echo -e "  This prevents hitting OpenRouter free tier rate limits."
+            local current_cooldown=""
+            if [ -f "$env_file" ]; then
+                current_cooldown=$(grep "^RATE_LIMIT_COOLDOWN=" "$env_file" | cut -d= -f2-)
+            fi
+            if [ -z "$current_cooldown" ]; then
+                current_cooldown="2"
+            fi
+            echo -e "  Current: ${CYAN}${current_cooldown}s${NC}"
+            echo -ne "\n  Enter cooldown seconds [1-30, or Enter for ${current_cooldown}s]: "
+            read -r cooldown_val
+            if [ -n "$cooldown_val" ] && [ "$cooldown_val" -ge 1 ] 2>/dev/null && [ "$cooldown_val" -le 30 ] 2>/dev/null; then
+                if [ -f "$env_file" ] && grep -q "^RATE_LIMIT_COOLDOWN=" "$env_file"; then
+                    sed -i '' "s|^RATE_LIMIT_COOLDOWN=.*|RATE_LIMIT_COOLDOWN=$cooldown_val|" "$env_file"
+                else
+                    echo "RATE_LIMIT_COOLDOWN=$cooldown_val" >> "$env_file"
+                fi
+                echo -e "\n${GREEN}  Cooldown set to ${cooldown_val}s${NC}"
+            elif [ -n "$cooldown_val" ]; then
+                echo -e "\n${RED}  Invalid value. Enter a number between 1 and 30.${NC}"
+            else
+                echo -e "\n${CYAN}  Keeping current cooldown: ${current_cooldown}s${NC}"
+            fi
+            ;;
+        4)
+            echo
             echo -e "${CYAN}  Recommended free models:${NC}"
-            echo "    1) qwen/qwen3.6-plus-preview:free - Recommended"
+            echo "    1) qwen/qwen3.6-plus:free - Recommended"
             echo "    2) minimax/minimax-m2.5:free - Fast"
             echo "    3) nvidia/nemotron-3-super-120b-a12b:free - Largest"
             echo "    4) google/gemma-3-4b-it:free - Fastest (may be rate-limited)"
             ;;
-        4)
+        5)
             echo
             echo -e "${GREEN}  Testing API connection...${NC}"
             local test_key=""
@@ -742,7 +770,7 @@ timeline_tracker() {
     echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
     echo
     
-    ANALYSIS_DIR="$HOME/Documents/clif-high-webbot/analysis_input"
+    ANALYSIS_DIR="$(pwd)/analysis-input"
     
     if [ ! -d "$ANALYSIS_DIR" ]; then
         echo -e "${RED}  ✗ Analysis directory not found: $ANALYSIS_DIR${NC}"

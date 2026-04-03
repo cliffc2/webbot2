@@ -71,7 +71,7 @@ nano .env
 
 ### LLM Analysis (OpenRouter)
 Free tier models available:
-- `qwen/qwen3.6-plus-preview:free` (recommended - balanced)
+- `qwen/qwen3.6-plus:free` (recommended - balanced)
 - `minimax/minimax-m2.5:free` (fast)
 - `google/gemma-3-4b-it:free` (fastest, may be rate-limited)
 
@@ -140,7 +140,7 @@ webbot2 report audio analysis.json --lang en --output report.mp3
 
 ### Run Full Pipeline
 ```bash
-webbot2 run-all --query "future leaks" --limit 50 --model "qwen/qwen3.6-plus-preview:free"
+webbot2 run-all --query "future leaks" --limit 50 --model "qwen/qwen3.6-plus:free"
 ```
 
 ---
@@ -152,7 +152,7 @@ Edit `.env` in the project directory:
 ```bash
 # OpenRouter (free tier - recommended)
 OPENROUTER_API_KEY=sk-or-v1-...
-OPENROUTER_MODEL=qwen/qwen3.6-plus-preview:free
+OPENROUTER_MODEL=qwen/qwen3.6-plus:free
 
 # Or use OpenAI (paid)
 OPENAI_API_KEY=sk-...
